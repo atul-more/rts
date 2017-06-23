@@ -1,0 +1,56 @@
+@RequestMapping(value= "/edit/{centerId}", method = RequestMethod.GET,  produces = "application/json")
+	public ModelAndView editCenter(@PathVariable String centerId) {
+		ModelAndView modelAndView = new ModelAndView();
+		Center center = service.getCenterByCenterId(centerId);
+		modelAndView.setViewName("edit");
+		modelAndView.addObject("center", center);
+		return modelAndView;
+	}
+
+
+<!DOCTYPE html>
+<html xmlns:th="http://thymeleaf.org">
+<head>
+<meta charset="ISO-8859-1"/>
+<title>Edit Page</title>
+</head>
+<body>
+	<form action="edit" method="post">
+       <table>  
+           <tr>  
+               <td><label for="center_id">* ID</label></td>  
+               <td><input type="text" disabled="disabled" name="centerId" value="${center.centerId}"></input></td>  
+           </tr>
+           
+           <tr>  
+               <td><label for="center-name">* Center Name</label></td>  
+               <td><input type="text" name="centerName" value="${center.centerName}"></input></td>  
+           </tr>
+           <tr>  
+               <td><label for="company-id">* Company</label></td>  
+               <td>
+               		<select name="companyId">
+               			<option value="">Select Company</option>
+						<option value="247">24/7</option>
+						<option value="ACT">ACT</option>
+						<option value="ALOR">Alorica</option>
+					</select>
+			   </td>
+           </tr>
+           <tr>  
+               <td><label for="hours-operation">Hours of op.</label></td>  
+               <td><input type="text" name="operationHrs" value="${center.operationHrs}"></input></td>  
+           </tr>
+           <tr>  
+               <td><label for="center-desc">Center Desc</label></td>  
+               <td><input type="text" name="centerDesc" value="${center.centerDesc}"></input></td>  
+           </tr>
+           <tr>  
+               <td></td>  
+               <td><input type="submit" value="Submit"></input></td>  
+           </tr>
+       </table> 
+       <input type="hidden" name="createdBy" value="am5854"/> 
+	</form>  
+</body>
+</html>
