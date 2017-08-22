@@ -1,0 +1,25 @@
+Micro Services, Java, Spring MVC, Spring boot, Rabbit MQ, Oracle DB, ATG 
+
+Six or more years of relevant experience with Bachelor’s degree 
+Experience with all phases of the Software Development Lifecycle, including system analysis, design, coding, testing, debugging and documentation. 
+Experience in designing and developing strong, robust & scalable architecture for micro services. 
+Experience with RESTful Web Services, SAP Integration, SOA Architecture, SoapUI. 
+Experience with Hibernate/JPA/JDBC, Oracle DB/SQL, WebSphere/Liberty/WebLogic Server, MQ (IBM/Oracle/Rabbit). 
+Extensive experience in Microservices. 
+Extensive experience with Spring MVC, Spring boot, JavaScript, JQuery, AngularJS, JSON/DWR/AJAX. 
+Experience with profiling, performance tuning, core dump analysis, Performance Tools Platform (TPTP). 
+Experience in production application support, hands on experience in finding root cause and resolving production issues. 
+Teamwork & collaboration skills with the proven ability to work across organizations. 
+Excellent problem solving skills with the demonstrated ability to develop quick and sound solutions to resolve complex issues. 
+Agile methodology, DevOps model, working experience of ESB architecture and implementation. 
+Knowledge of data modeling. 
+Knowledge of iOS/Android App Development. 
+Knowledge in GIT, Data analytics tools such as Hadoop/Hive/Elastic Search, Kibana, C/C++. 
+Certification(s): Sun/Oracle Certified Java Programmer & Web Component Developer. 
+Perform analysis and application architecture/design solutions to improve availability, scalability, reliability, and performance with no business impact. 
+Analyze existing architectural design and ascertain changes that have to be done without adversely affecting scalability, performance with business impact metrics prior to implementation. 
+Follow and define / update standard guidelines and adhere to all security related aspects like PCI, SPI, SSL etc. 
+Participate in the evaluation, recommendation, and selection of software solutions. 
+Manage time effectively, and work on multiple project timelines simultaneously in a demanding deadline driven environment. 
+Responsible to create project plans for the development activities 
+Track milestone and come up with mitigation alternatives for issues and design gaps.
