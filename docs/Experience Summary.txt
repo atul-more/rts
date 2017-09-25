@@ -1,0 +1,163 @@
+start		end			Project			Duration
+Sep-2005	Feb-2008	INFORMe			2 Yrs 5 Months		CF 5, SQL Server 2005, HTML, JS, CSS
+Mar-2008	Apr-2010	FaME - WMIG-ED	2 Yrs 1 Month		Core Java, J2EE (Servlets, Web Services, EJBs, Hibernate, JUnit), Oracle PL-SQL 10g, WLS 8, SVN, Ant
+May-2010	Nov-2013	ATT CCT			3 Yrs 6 Months		CF 8, SQL Server 2008, MS SSIS, MS VB, HTML, JS, CSS, Core Java, Unix Solaris 9 (Shell Scripting),
+															Putty, CVS, Rally, CAST, Oracle PL-SQL 11g, Maven
+Dec-2013	Jul-2017	ATT CARE SCA	3 Yrs 7 Months		Core Java, J2EE (JSP, Servlets, Struts 1, Struts 2, JUnit 4), Oracle PL-SQL 11g, WLS 12C, SVN, 
+															U/L Shell Scripting, CF 8, SQL Server 2008, MS SSIS, Sonar, Rally, CAST, Maven, Putty, JBOSS EAP 6, Jenkins, Spring-boot, MicroServices, Jenkins, HTML5, CSS3, AngularJS, Bootstrap.
+
+Skills	Exp (as on Aug-17)
+
+CF							6.5 Yrs		80 Months
+SQL Server					7.5 Yrs		90 Months
+SSIS						5 Yrs		60 Months
+CoreJava, Oracle PL/SQL		7 Yrs		84 Months
+J2EE, Maven, ShellScript	6 Yrs		72 Months
+Spring-boot MicroServices	0.75 Yrs	8 Months
+
+
+Core Java, J2EE (JSP, Servlets, Struts, Web Services, Junit)
+Oracle PL-SQL, MS SQL Server, T-SQL, PostgreSQL
+HTML, AngularJS, Bootstrap, CSS, ColdFusion
+Spring Boot, MicroServices Architecture
+Unix/Linux Shell Scripting
+Jenkins, Maven, Sonar, Rally
+Agile methodology
+WebLogic 12C, JBOSS EAP 6
+
+Mobility Wireless
+
+
+
+SRS/PAR (Service Reporting System/Personal Accountability Report) is customer service reporting tool which provides call center personnel with a one stop shop to monitor call handling performance and quality statistics. By combining ACD data with customer satisfaction measurements, it gives a clear picture of opportunities for improvement. 
+PDTS (Personal Development Tracking System) is a tool created to standardize, track and report on coaching/training and discipline interactions between employees and their supervisors. It provides a better experience for managers and employees by helping to capture coaching discussions and performance topics. With extensive reporting options, it also serves as an effective tool to insulate AT&T resources against legal claims made in regards to past performance and specific individual/supervisor responsibility.  
+
+Sal: 8.09 L/Annum
+CTC: 7.9 (7.1 Fix; 79K Var)
+With Gratuity & Medical Insurance: 8.09
+
+
+
+SCA – Sales Compensation Performance Management is a set of 4 applications in ATT, TechM is responsible for doing Maintenance & Enhancement for the application.
+The Scope, technology for all 4 applications varies as per the Client requirements. 
+Details mentioned below.
+
+Application	Description	Technology
+ A	Sales Compensation for Lightspeed (SC4LS) (MOTS ID – 10248)	Informatica, Oracle, Teradata, UNIX
+ B	SRS-PAR (SRS Personal Accountability Reporting System) (MOTS ID – 17254)	MS SQL , Cold fusion
+C	PDTS (Personal Development Tracking System)
+(MOTS ID – 17733)	Java, J2EE, Oracle
+ D	Q-RAS (Q-nomy Retail Appointment Scheduler) (MOTS 21941)	.NET , MS SQL 
+
+Customer Domain	Sales Compensation and performance Management, Retails Appointment Scheduling.
+
+•	The project SCA is to have a combination of application clubbed together to perform task independently. 
+•	SC4LS application is used to calculate compensation benefits for call centre agent.
+•	SRS application is response to the Personal Accountability Reporting initiative, and is intended to provide individual customer service agent’s daily feedback on their performance meeting standard call centre metrics.
+•	PDTS application capture daily Human Resource and Legal discussion and discipline performance data via electronic storage instead of paper based files.
+•	Q-RAS application is used to create online appointment to ATT retails stores for ATT Customer.
+
+
+To-do
+
+How to take thread dump - JStack, JMC, JVisualVM, JCMD, ThreadMXBean interface, Kill -3 (Unix), Ctrl + Break (Windows)
+Covarient return type
+
+----------------------------------------
+Main reason is the Family constraint - We had been to US and we know how is everything there. Relocating from India is a big compromise on a lot other important things which we don't want to do righ now for a Non-US country.
+
+I've US H1-B Visa that I want to utilize in US only. Why should I go to Mexico? And risk on Safety front as there are Safety issues in Mexico compared to US.
+
+Finally, We were not open to Mexico since beginning itself (Abhijit P had earlier offered me one, but I didn't show interest in it). And of course, we don't want to end up being in Mexico because of RMG folks' error. She/he can't decide that against our will.
+
+---------------------------------------
+
+How to take threadDump
+Issues with Unix Kill -3 way
+Server hanging - how to handle it
+	
+
+
+How to count no of threads
+Abstraction vs Encapsulation
+Abstraction example - normal class, abstract class, interface
+Polymorphism example
+How to runtime call a method passing just the object of a class
+ArrayList vs HashMap
+How to use ArrayList for storing Employee objects
+
+---------------------------------------
+
+Which java features have you used in your application
+
+> Core Java coding - interfaces, beans, utils, dao layers; String functions, StringBuffer/Builder, POJOs, Date functions, Exception Handling, Static Functions like isNull, isNumeric etc., Generics, Collection APIs (like HashMap, ArrayList etc.)
+> File I/O - for properties or config, writing contents to excel or pdf other files.
+> Log4J Logging
+> Apache APIs - for String functions (StringUtils), Validating email address (EmailValidator),POI API (XSSFWorkbook) for excel file generation.
+> JDBC APIs - Read Config from DB, Run procs through callable statements & get results, run report queries & process them etc.
+> javax.crypto.Cipher API for pwd encryption
+> Servlets - for realizing app functions (ex. generating PDF file; loading meta data)
+> JSPs, JSPFs etc. (& related tag libraries, display tage lib & decorator classes) for view logic for Struts 1 & Struts 2 framework
+> 
+
+--------------------------------------
+JSPF means?
+JSP Fragments can be compared to server side includes. These fragments are not compiled on their own, however there are compiled along side the page in which its included. JSPF files can be thought of as a first step in refactoring large JSP pages.
+--------------------------------------
+
+Callable Statement use in PDTS?
+
+1. Prepare a Call to a Stored Proc & Execute it.
+2. Can set params to be passed to the proc.
+3. Can register out param (of varchar or cursor type) - Can retrieve cursor as resultset & process it.
+4. Cursor type needs to be defined in SPEC of package - like "TYPE followUp_cursor IS REF CURSOR;"
+
+Using REF CURSOR s is one of the most powerful, flexible, and scalable ways to return query results from an Oracle Database to a client application. A REF CURSOR is a PL/SQL data type whose value is the memory address of a query work area on the database. In essence, a REF CURSOR is a pointer or a handle to a result set on the database.
+
+A REF CURSOR involves an additional database round-trip. While the REF CURSOR is returned to the client, the actual data is not returned until the client opens the REF CURSOR and requests the data. Note that data is not be retrieved until the user attempts to read it.
+
+A REF CURSOR is not updatable. The result set represented by the REF CURSOR is read-only. You cannot update the database by using a REF CURSOR.
+
+A REF CURSOR is not backward scrollable. The data represented by the REF CURSOR is accessed in a forward-only, serial manner. You cannot position a record pointer inside the REF CURSOR to point to random records in the result set.
+
+A REF CURSOR refers to a memory address on the database. Therefore, the client must be connected to the database during the lifetime of the REF CURSOR in order to access it.
+
+
+
+-------------------------------------
+Any perf tuning work done
+What does that you do on day-to-day activity
+Which java features have you used in your application
+Spring & Hibernate experience
+What part of java you like most
+What did you do as Solution Architect
+What is type erasure
+Generics features
+Experience with Multithreading
+
+
+
+
+Docker implementation in SRS POC
+Selenium test case writing for SRS UI
+
+
+
+	
+Difference between arraylist vector
+Difference between Statement PrepareStatement
+Junit Implementation ... Why didn't you use mockito
+JDBC Driver used... difference
+Design Patterns used.
+Spring-boot explanation 
+Singleton example
+Unix experience
+Vi command to traverse backword
+Database design
+Left outer join
+Are you a quick learner
+
+constraints to implement hashcode & equals method
+serial
+
+
