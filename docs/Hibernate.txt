@@ -1,0 +1,471 @@
+Draw Backs of JDBC:
+
+> In JDBC, Programmer has to take care of DB Connection - creation, exception handling and closure.
+> If Programmer didn’t close the connection in the finally block, then JDBC is not responsible to close that connection.
+> If the table structure is modified then the JDBC program (original SQL Commands) doesn’t work.  Again we need to modify and compile and re-deploy required, which is tedious.
+> JDBC generates database related error codes when exceptions are encountered; Java programmers are unaware of these error codes.
+> In the Enterprise applications, the data flow with in an application from class to class will be in the form of objects, but while storing data finally in a database using JDBC then that object will be converted into text.  Because JDBC doesn’t transfer objects directly.
+
+In order to overcome above problems,  Hibernate came into picture!
+
+--------------------------
+What is Hibernate?
+Hibernate is the ORM tool given to transfer the data between a java (object) application and a database (Relational) in the form of the objects.  
+
+It was started in 2001 by Gavin King as an alternative to EJB2 style entity bean.
+
+Hibernate is a non-invasive framework meaning it won't force the programmers to extend/implement any class/interface. Because of use of POJO classes, Hibernate is light weight. It is purely for persistence (to store/retrieve data from Database).
+
+The term Object/Relational Mapping refers to the technique of mapping data from an object model representation to a relational data model representation (and visa versa).
+
+Hibernate not only takes care of the mapping from Java classes to database tables (and from Java data types to SQL data types), but also provides data query and retrieval facilities. It can significantly reduce development time otherwise spent with manual data handling in SQL and JDBC. Hibernate’s design goal is to relieve the developer from 95% of common data persistence-related programming tasks by eliminating the need for manual, hand-crafted data processing using SQL and JDBC. However, unlike many other persistence solutions, Hibernate does not hide the power of SQL from you and guarantees that your investment in relational technology and knowledge is as valid as always.
+
+Hibernate may not be the best solution for data-centric applications that only use stored-procedures to implement the business logic in the database, it is most useful with object-oriented domain models and business logic in the Java-based middle-tier. 
+
+--------------------------
+Requirements:
+
+Hibernate 5.2 and later versions require at least Java 1.8 and JDBC 4.2.
+
+Hibernate 5.1 and older versions require at least Java 1.6 and JDBC 4.0.
+
+--------------------------
+Features/advantages of Hibernate:
+JPA Provider - In addition to its own "native" API, Hibernate is also an implementation of the Java Persistence API (JPA) specification. As such, it can be easily used in any environment supporting JPA including Java SE applications, Java EE application servers, Enterprise OSGi containers, etc.
+
+Idiomatic persistence - Hibernate enables you to develop persistent classes following natural Object-oriented idioms including inheritance, polymorphism, association, composition, and the Java collections framework. Hibernate requires no interfaces or base classes for persistent classes and enables any class or data structure to be persistent.
+
+Support Performance - Hibernate supports lazy initialization, numerous fetching strategies and optimistic locking with automatic versioning and time stamping. Hibernate requires no special database tables or fields and generates much of the SQL at system initialization time instead of at runtime. Hibernate consistently offers superior performance over straight JDBC code, both in terms of developer productivity and runtime performance.
+
+Scalable - Hibernate was designed to work in an application server cluster and deliver a highly scalable architecture. Hibernate scales well in any environment: Use it to drive your in-house Intranet that serves hundreds of users or for mission-critical applications that serve hundreds of thousands.
+
+Reliable - Hibernate is well known for its excellent stability and quality, proven by the acceptance and use by tens of thousands of Java developers.
+
+Extensibile - Hibernate is highly configurable and extensible
+
+--------------------------
+Persisting data to DB without hibernate:
+	1. JDBC DB config - hostname, port, credentials etc.
+	2. Define Model object to be stored.
+	3. Service method to create/instantiate Model Object.
+	4. Database Design for data storage.
+	5. DAO method to save object using SQL query.
+--------------------------
+Persisting data to DB with hibernate:
+	1. JDBC DB config - hibernate configuration (hibernate.cfg.xml)
+	2. Define Model object to be stored - @Entity annotated class.
+	3. Service method to create/instantiate Model Object - use Hibernate API
+	Database Design for data storage - optional or not required (hibernate.hbm2ddl.auto property of hibernate configuration can take care of it).
+	DAO method to save object using SQL query - not needed.
+--------------------------
+Service method to create/instantiate Model Object - use Hibernate API
+	1. Create a "session factory" (one per app as is costlier operation - this step should use the default config file i.e. hibernate.cfg.xml file.): 
+		SessionFactory sessionFactory = new Configuration().configure().buildSessionFactory();
+	2. Create a "session" from "session factory": 
+		Session session = sessionFactory.openSession();
+	3. Save model object using session:
+		session.beginTransaction();
+		session.save(userObject);
+		session.getTransaction().commit();
+		session.close();
+	4. Create another session for a different opertation Ex. UserDetails userObject2 = (UserDetails)session.get(UserDetails.Class, 11186) and close it.
+	5. Close sessionFactory.
+* Create Session Factory - based on cfg file. Only one obj per appl.
+* Create Session - from Session Factory.
+* Use Session to save model obj.
+--------------------------
+Annotations:
+@Entity annotate bean or pojo class. property name of the same can be used for the respective table name in DB. Resevered Keywords like user is not allowed for DB table name.
+
+@Table annotate the pojo class to map to a table. property name of the same can be used to name the DB table. It won't change the default (class name) entity name (will be used in HQL query).
+
+@Id & @Column annotations can be used with individual data members of the POJO class or with the getters to the same. Value to be stored in DB will be picked up using getter methods.
+
+@Id => Primary Key.
+Surrogate Key -> When a table is not having a column to be marked as primary key, Sr No key column (for example) can be added for making it as primary key.
+
+Hibernate can generate value for Primary (Surrogate) Key using @GeneratedValue annotation along with @Id.
+
+@GeneratedValue has property "strategy" with possible values of GenerationType enumeration - AUTO, IDENTITY (not with all DB), SEQUENCE (uses DB Sequence object), TABLE. Default is AUTO. Ex. @GeneratedValue (strategy=GenerationType.AUTO)
+
+Hibernate maps java data types to db data types.
+	String -> varchar(255)
+	Int -> int
+	Date -> date or timestamp
+	
+@Basic annotation for a data member tells hibernate that consider it as a data to be persisted. Default behavior is also the same.
+
+@Transient annotation implies that the respective data member will be ignored for data persistence to DB. Static fields are also ignored.
+
+@Temporal annotation is used to take a part of the date data type. It has property TemporalType enumeration to choose value from like TemporalType.DATE, TemporalType.TIME etc.
+
+What if varchar(255) is not sufficient to store a column value?
+use @Lob annotation. Maps to BLOB or CLOB data types depending on data contents.
+--------------------------
+What if a data member is an Object itself. Ex. Address of UserDetails class?
+Address is "value object" inside UserDetails "Entity".
+
+Approach 1: to have separate columns for address object members. Mark Address as @Embeddable to make it an object of Value type or use @Embedded annotation with Address member variable on UserDetails class.
+
+However, 1 problem to address - what if 2 address data members are there - homeAddress & officeAddress. The corresponding insert will have duplicate name columns.
+=> use @AttributeOverride annotation. properties name & column can be used to override column names of Address data memebers.
+Ex.
+@AttributeOverrides({
+@AttributeOverride(name="street", column=@Column(name="home_street")),
+@AttributeOverride(name="city", column=@Column(name="home_city")),
+.
+.
+})
+private Address homeAddress;
+
+Approach 2: 
+
+**************************
+Which java features have you used in your application
+
+> Core Java coding - interfaces, beans, utils, dao layers; String functions, StringBuffer/Builder, POJOs, Date functions, Exception Handling, Static Functions like isNull, isNumeric etc., Generics, Collection APIs (like HashMap, ArrayList etc.)
+> File I/O - for properties or config, writing contents to excel or pdf other files.
+> Log4J Logging
+> Apache APIs - for String functions (StringUtils), Validating email address (EmailValidator),POI API (XSSFWorkbook) for excel file generation.
+> JDBC APIs - Read Config from DB, Run procs through callable statements & get results, run report queries & process them etc.
+> javax.crypto.Cipher API for pwd encryption
+> Servlets - for realizing app functions (ex. generating PDF file; loading meta data)
+> JSPs, JSPFs etc. (& related tag libraries, display tage lib & decorator classes) for view logic for Struts 1 & Struts 2 framework
+> JNDI lookup for App Server resources - data sources, jms queues etc.
+> JMS for loading meta data -> Uses Topic destination object for JMS communication.
+	- Lookup TopicConnectionFactory & use it to lookup further the javax.jms.Topic.
+	- Send Message every time meta data is updated i.e. publish message [TopicConnection > TopicSession > TopicPublisher (using createTextMessage method of TopicSession and publish method of TopicPublisher)]
+	- Use TopicConnectionFactory to get TopicConnection and use it to set up Message Listener [TopicConnection > TopicSession > TopicSubscriber (setMessageListener method passing class name which is implementing javax.jms.MessageListener)].
+
+--------------------------------------
+JSPF means?
+JSP Fragments can be compared to server side includes. These fragments are not compiled on their own, however there are compiled along side the page in which its included. JSPF files can be thought of as a first step in refactoring large JSP pages.
+--------------------------------------
+
+Callable Statement use in PDTS?
+
+1. Prepare a Call to a Stored Proc & Execute it.
+2. Can set params to be passed to the proc.
+3. Can register out param (of varchar or cursor type) - Can retrieve cursor as resultset & process it.
+4. Cursor type needs to be defined in SPEC of package - like "TYPE followUp_cursor IS REF CURSOR;"
+
+Using REF CURSOR s is one of the most powerful, flexible, and scalable ways to return query results from an Oracle Database to a client application. A REF CURSOR is a PL/SQL data type whose value is the memory address of a query work area on the database. In essence, a REF CURSOR is a pointer or a handle to a result set on the database.
+
+A REF CURSOR involves an additional database round-trip. While the REF CURSOR is returned to the client, the actual data is not returned until the client opens the REF CURSOR and requests the data. Note that data is not be retrieved until the user attempts to read it.
+
+A REF CURSOR is not updatable. The result set represented by the REF CURSOR is read-only. You cannot update the database by using a REF CURSOR.
+
+A REF CURSOR is not backward scrollable. The data represented by the REF CURSOR is accessed in a forward-only, serial manner. You cannot position a record pointer inside the REF CURSOR to point to random records in the result set.
+
+A REF CURSOR refers to a memory address on the database. Therefore, the client must be connected to the database during the lifetime of the REF CURSOR in order to access it.
+
+-------------------------------------
+Any perf tuning work done
+
+In the current project - none as the applications were not expecting any performance issues except for the query tuning at some places. That were taken care by the DBA team. I was just involved to take care of a memory leak when DBA highlighted some long open app user sessions. 
+
+There was a performance test team in my earlier assignment. They used to stress test the app for any performance issues. And we were handling them if any. As a part of that only, I migrated one soap based web app to axis 2 web service based web app.
+
+Otherwise, I was just following some of the standards that were set to avoid performance issues.
+
+Define or follow Guidelines:
+ - Set a goal: like maximum concurrent users the application will support for a given limit on response times; the response times should not increase more than 10 percent during the peak hour of user load.
+ 
+ - Identify problem areas: A little investigation into problems might reveal the specific component that causes poor performance. For example, if the CPU usage on an application server is high, you will want to focus on tuning the application server first.
+ 
+ - Follow a methodical and focused path: try to make changes that are expected to have the biggest impact on performance. Your time is better spent tuning a method that takes 10 seconds but gets called 100 times than tuning a method that takes one minute but gets called only once. 
+
+Stress tools - Many different stress tools are available in the market today.
+Performance monitors - Using a monitoring tool, you collect data for various system performance indicators for all the appropriate nodes in your network topology. Many stress tools also provide monitoring tools.
+
+Environment tuning: 
+ - A J2EE application environment usually consists of an application server, Web server, and a backend database.
+ - Web/App Server: most important setting for your Windows Apache HTTP Server is the option for number of threads. This value should be high enough to handle the maximum number of concurrent users, but not so high that it starts adding its own overhead of too many context switches. The optimum value can be determined by monitoring the number of threads in use during peak hours. The JVM performs best with the fewest busy threads. A good starting point for threadcount can be found with the following equations.
+	(Number of Java Execution Threads) = Number of Transactions / Time(in seconds)
+	or
+	(Number of Execution Threads)=Throughput(transactions/sec)
+ Other tuning options: Do not load unnecessary modules; Try to minimize logging as much as possible; Use the latest Java version.
+ Heap Size: Keep its value optimum. If you still run out of memory, look into your application design to reduce memory usage, identify any memory leaks, or try various garbage collector options in the JVM.
+ - Database Tuning: 
+	- Run DB Server on dedicated instead of shared machine. 
+	- Keep your application database and your temporary database on different hard disks. 
+	- Consider taking local backups and moving them to a different machine. The backups should complete much faster. 
+	- Normalize your database to the third normal form. This is usually the best compromise, as the fourth and fifth forms of normalization can result in performance degradation.
+ - Application Tuning: 
+	- Explicitly assigning a null value to variables that are no longer needed helps the garbage collector to easily identify the parts of memory that can be safely reclaimed. While Java automates memory management, it does not prevent usage of excessive amounts of memory or memory leaks.
+	- Do not synchronize code blocks or methods unless synchronization is required. Keep synchronized blocks or methods as short as possible to avoid scalability bottlenecks.
+	- Only declare methods as final when absolutely necessary: Modern optimizing dynamic compilers can perform inlining and other inter-procedural optimizations, even if Java methods are not final. If you are absolutely certain that a method must not be overridden, use the final keyword.
+	- Declare constants as static final: The dynamic compiler can perform some constant folding optimizations easily, when the hint is provided.
+	- Avoid finalizers: Adding finalizers to your code makes the garbage collector more expensive and unpredictable. Finalizers may not always be executed, before the program exits. Releasing critical resources in finalize() methods may lead to unpredictable application behavior.
+	- Declare method arguments final if they are not modified in the method. 
+	- Use a logging mechanism (like log4j) that lets you switch off logging in the production environment to reduce logging overhead.
+	- Instead of creating and destroying resources every time you need them, use a resource pool for every resource (ex. JDBC Connection, Thread) that is costly to create. The number of database connections, commonly known as a connection or resource pool, is closely tied to the number of execution threads. A rule of thumb is to match the number of database connections to the number of execute threads. Over-configuring this value could cause unnecessary overhead to the database, while under-configuring could tie up all execution threads waitingon database I/O.
+	- Try to minimize the objects you store in HttpSession. Extra objects in HttpSession not only lead to more memory usage, they also add additional overhead for serialization/deserialization in case of persistent sessions.
+	- Where ever possible, use RequestDispatcher.forward() instead of HttpServletResponse.sendRedirect(), as the latter involves a trip to the browser.
+	- Minimize the use of SingleThreadModel in servlets so that the servlet container does not have to create many instances of your servlet.
+	- Java stream objects perform better than reader/writer objects because they do not have to deal with string conversion to bytes. Use OutputStream in place of PrintWriter.
+	- Reduce the default session timeout either by changing your servlet container configuration or by calling HttpSession.setMaxInactiveInterval() in your code.
+	- Always add directive <%@ page session="false"%> to JSP pages where you do not need a session.
+	- Use the jspInit() method to cache static data, and release them in the jspDestroy() method.
+	- Use StringBuffer rather than using + operator when you concatenate multiple strings.
+	- Excessive use of custom tags also may result in poor performance. Keep performance in mind while designing your custom tag library.
+	- In Java, serialization and deserialization of objects is a CPU-intensive procedure and is likely to slow down your application. Use the transient keyword to reduce the amount of data serialized. Customized readObject() and writeObject() methods may be beneficial, in some cases.
+	- Serialization uses reflection extensively, and this also makes it slow.
+	- The Externalizable interface is provided to solve Serialization's performance problems. Make classes Externalizable on a case-by-case basis to improve performance.
+	- Start the consumer before you start the producer so that the initial messages do not need to queue.
+	- Close resources (e.g. connections, session objects, producers, consumers) when finished with them.
+	- Choose non-durable (NON_PERSISTENT) messages wherever appropriate to avoid the persistency overhead.
+	- Tune the Destination parameters: a smaller capacity increases message throughput; a higher redelivery delay and lower redelivery limit reduces the overhead.
+	- Set the TimeToLive value as low as feasible (default is for messages to never expire).
+	- Receive messages asynchronously with a MessageListener implementation. 
+	- Use the servlet init() method to cache static data, and release them in the destroy() method.
+	- Use StringBuffer rather than using + operator when you concatenate multiple strings.
+	- Use the print() method rather than the println() method.
+	- Use a ServletOutputStream rather than a PrintWriter to send binary data.
+	- Use the application server's caching facility.
+	- Session mechanisms from fastest to slowest are: HttpSession, Hidden fields, Cookies, URL rewriting, the persistency mechanism.
+	- Set the session time-out value as low as possible.
+	- Reduce the number of remote calls made by an application to improve performance.
+	- Cache remote objects locally where possible, rather than repeatedly fetching them.	
+ - SQL query optimization
+	- Keep the transactions as short as possible. The longer a transaction is open, the longer it holds the locks on the resources acquired, and every other transaction must wait.
+	- Do not use DISTINCT clauses unnecessarily (i.e. when you know the rows will be unique). 
+	- When possible, avoid using SELECT *.
+	- Consider adding indexes to those columns causing full-table scans for your queries.
+	- Avoid using too many string functions (like SUBSTRING, LOWER, UPPER, and LIKE) or operators in your queries.
+	- Group all related search queries in a single JDBC call. The basic idea of performance tuning in DAO layer is to reduce the number of JDBC calls.
+	- Whenever your select query involves more than 6 tables, try to denormalize the table. To improve the performance, you need to reduce the number of tables. 
+	- In case of batch operations, it is not a good idea to create SQL queries. SQL query will be compiled every time and then it is executed. You can use stored procedures. Stored procedures are compiled only once when they are executed for the first time.
+	- Avoid using views unless it is really needed. Querying from view takes more time than directly querying from the table.
+	- Try to use prepared statements as they are precompiled.
+	 
+Performance tuning is an ongoing process. Simply put, good system performance depends on good design, good implementation, defined performance objectives and performance tuning. Mechanisms have to be implemented that provide performance metrics which can be compared against the performance objectives defined.
+
+-------------------------------------
+What does that you do on day-to-day activity?
+1. Development:
+	- Coding in core java, using JDBC API, struts1 - struts2 based code update. JSPs update, Servlet updates etc.
+	- Test cases writing.
+	- Build code using Maven, Deploy code to WebLogic Server using Jenkins. DevOps.
+	- Spring Boot, Hibernate, MicroServices based code update.
+	- AngularJS for UI code. HTML5, CSS & Bootstrap.
+	- Writing sql queries, updating pl-sql procedures, packages & functions etc.
+	- Shell scripts - cron job script updates on App Script Server.
+	- Delivery in Agile sprints.
+2. Unit Test:
+	- Running test cases with Maven, Jenkins.
+	- Increase test coverage for existing code - struts 1 (StrutsTestCase API); struts 2 (XworkTestCase API).	
+	- Manual testing and test results generation.	
+3. Others:
+	- Estimation
+	- CFM using SVN (with tool SmartSVN).
+	- Doing POCs (Proof of concepts) for different proposals using client recommended Open-Source technologies.
+	- Reporting activities - report progress of team on different assignments (POCs and Project work).
+-------------------------------------
+Spring & Hibernate experience
+I am using Spring Boot for the POC work. It's based on MicroServices architecture.
+Hibernate I have used in the past project.
+-------------------------------------
+What part of java you like most
+Spring Boot based app development has been the best thing that i had done till date. 
+
+I like to work on value adds that can be useful to others. Not specific to any technologies, I had done few VAs related to POCs, Build process, Test Automation, Continuous Integration and Automated Deployment using Jenkins, LoginAs Function, Log Rotation tool, Email framework.
+
+Technologies used were - Spring Boot, AngularJS, Unix Shell Scripts, Jenkins, Maven, Struts 2 framework, Java/J2EE.
+-------------------------------------
+What did you do as Solution Architect
+It was rather an Applicaiton Architect role.
+
+As a Solution Architect, I was responsible to determine and propose solutions to the business problems based on the domain and app knowledge. For instance, for SRS reporting app, there was a new metrics data that Client was looking to make available on SRS UI. The high level steps involved were:
+- Extracting the data from the source app.
+- Making it available to SRS app to consume.
+- Report on the consumed data.
+
+My reponsibility was to define processes, practices & rules of how these activities would be done by each of the interacing apps with more focus on SRS app more.
+
+For instance above 3 activities were proposed to be done in the following way.
+1. Data extraction - source app was free to choose way of. However the mode of file transfer was CSV files over SFTP (as the Company std was use of SFTP vs FTP).
+2. Data cosumption - SRS was already having a mechanism to process csv or flat files and store data to SRS DB. Asked them to either reuse existing mechanism or develop new as necessary.
+3. Data Reporting - SRS had a custom report framework with which dynamic reports could be generated.
+-------------------------------------
+How to take thread dump and why is it needed?
+What is thread dump?
+A thread dump is a snapshot of the state of all threads that are part of the process. The state of each thread is presented with a so called stack trace, which shows the contents of a thread’s stack. Some of the threads belong to the Java application you are running, while others are JVM internal threads.
+
+A thread dump reveals information about an application’s thread activity that can help you diagnose problems and better optimize application and JVM performance; for example, thread dumps automatically show the occurrence of a deadlock. Deadlocks bring some or all of an application to a complete halt.
+
+Why to take thread dump?
+Main use - for troubleshooting and diagnostics. Analyse dumps with other diagnostics tools, such as the JRockit Runtime Analyzer, which is part of Oracle JRockit Mission Control.
+1. Detecting Deadlocks - The Oracle JRockit JVM automatically analyzes the thread dump information and detects whether there exists any circular (deadlocked) or blocked lock chains in it.
+2. Detecting Processing Bottlenecks - If you discover (in a set of consecutive thread dumps) that one or more threads in your application is temporarily stuck waiting for a lock to be released, then you might have reason to look over the code of your Java application to see if the synchronization (serialization) is necessary or if the threads can be organized differently.
+3. Viewing The Runtime Profile of an Application - By making several consecutive thread dumps, you might quickly get an overview of which parts of your Java application that are most heavily used.
+
+When there is an obstacle, or when a Java based Web application is running much slower than expected, we need to use thread dumps. 
+
+Thread contention is a status in which one thread is waiting for a lock, held by another thread, to be lifted. Different threads frequently access shared resources on a web application. For example, to record a log, the thread trying to record the log must obtain a lock and access the shared resources.
+
+Deadlock is a special type of thread contention, in which two or more threads are waiting for the other threads to complete their tasks in order to complete their own tasks.
+
+Different issues can arise from thread contention. To analyze such issues, you need to use the thread dump. A thread dump will give you the information on the exact status of each thread.
+
+To summarize, Thread dumps are essential diagnosis information used to analyze and troubleshoot performance related issues such as server hangs, deadlocks, slow running, idle or stuck applications, slow database interactions etc.
+
+How to take thread dump?
+1. Using Jstack (since 1.5): 
+- Command line tool that comes with JDK.
+- Get PID using jps -v
+- Run "jstack -l  <pid> > <file-path>"
+
+2. Using JVisualVM (since 1.6 update 7):
+GUI Tool. Part of JDK - bin\jvisualvm.exe. This tool also has the capability to capture thread dumps from the java processes that are running in remote host as well.
+
+a. Launch the jvisualvm. 
+b. On the left panel, you will notice all the java applications that are running on your machine. Select one whose thread dump you want.
+c. Go to the “Threads” tab. Click on the “Thread Dump” button.
+
+3. Using kill -3:
+In major enterprises for security reasons only JREs are installed in production machines. JDK tools to take thread dumps are not useful in such cases.
+
+- Obtain the process pid by using ps -ef command to check the pid of the currently running Java process.
+- Use the extracted pid as the parameter of "kill -3 <pid>" to obtain a thread dump.
+
+When ‘kill -3’ option is used thread dump is sent to standard error stream. If you are running your application in tomcat, thread dump will be sent in to <TOMCAT_HOME>/logs/catalina.out file.
+
+4. Java Mission Control (JMC) (since JDK 7 Update 40): 
+Once you launch the tool, you will see all the Java processes that are running on your local or remote host.
+On the left panel click on the “Flight Recorder” option that is listed below the Java process for which you want to take thread dumps. Here in the “Thread Dump” field, you can select the interval (like Every 60s) in which you want to capture thread dump. After the selection is complete start the Flight recorder. Once recording is complete, you will see the thread dumps in the “Threads” panel.
+
+5. Windows (Ctrl + Break):
+Will work only in Windows Operating system.
+
+Select command line console window in which you have launched application.
+Now on the console window issue the “Ctrl + Break” command.
+
+The thread dump will be printed on the console window itself. To log to a perticular file, launch app as below:
+
+java -classpath . SampleThreadProgram > C:\workspace\threadDump.txt 2>&1
+
+Thus when you issue “Ctrl + Break” thread dump will be sent to C:\workspace\threadDump.txt file.
+
+6. ThreadMXBean (since 1.5):
+Interface to use for programmatical thread dump generation.
+
+7. JCMD (Since 1.7):
+JCMD Tool has various capabilities such as identifying java process Ids, acquiring heap dumps, acquiring thread dumps, acquiring garbage collection statistics etc.
+
+jcmd <pid> Thread.print > <file-path>
+
+Ex. jcmd 37320 Thread.print > /opt/tmp/threadDump.txt
+
+Jstack & kill -3 are the best options because of Simpleness and Universalness (work with most of the versions).
+
+Vs Head Dump:
+A Heap Dump is a snapshot of the Java process heap memory at a given time. It's a useful tool to troubleshoot memory leaks and other memory related issues. Heap dumps are to memory what thread dumps are to java threads.
+
+Using WebLogic Server:
+a. From the WLS Administration Console, a thread dump can be created by navigating to Servers -> <Server Name> -> Monitoring -> Threads -> Dump Threads Stack OR Servers -> <Server Name> -> Monitoring -> Performance > Dump Threads Stack. These methods could lead to truncated or incomplete thread dumps.
+You can force garbage collecting through Servers -> <Server Name> -> Monitoring -> Performance > Garbage Collect.
+b. Using WLST script with threadDump() command.
+c. Using T3ServicesDef
+Can collect The Thread Dump remotely. This can be achieved using “weblogic.common.T3ServicesDef” and “weblogic.common.AdminServicesDef”  weblogic APIs. To achieve it, we need to simply run “. ./setWLSEnv.sh” and run a program (search for it on web http://middlewaremagic.com/weblogic/?p=1379).
+d. Using “weblogic.Admin” which is deprecated but still available:
+Ex. java weblogic.Admin -url t3://AdminHostName:7001 -username weblogic -password weblogic THREAD_DUMP
+Thread Dumps will be generated in the Servers STDOUT file. Make sure you export weblogic.jar in your path.
+e. Invoke WebLogic.WLST: 
+java weblogic.WLST connect("weblogic","weblogic","t3:<weblogicinstaceaddress>:<port>") threadDump()
+Make sure you export weblogic.jar in your path.
+-------------------------------------
+Covarient return type?
+=> returning own Class reference or its child class reference.
+
+- The covariant return type in java, allows narrowing down return type of the OVERRIDDEN method.
+- The covariant return type always works only for non-primitive return types.
+
+It was not possible override any method by changing the return type before Java 1.5 version. The only limitation is child’s return type should be sub-type of parent’s return type (non-primitive type only).
+
+Advantages:
+- It helps to avoid confusing type casts present in the class hierarchy and thus making the code readable, usable and maintainable.
+- We get a liberty to have more specific return types when overriding methods.
+- Help in preventing run-time ClassCastExceptions on returns.
+-------------------------------------
+Static var/method in inheritance?
+- Child can access directly the Static var/method from Parent class if it's not defined with private access specifier.
+- You can use Parent Class Name or Child class name object to use it, however a WARNING will be shown that the it "should be accessed in a static way".
+-------------------------------------
+How to count no of threads?
+1. There is a static method on the Thread Class that will return the number of active threads controlled by the JVM:
+	Thread.activeCount()
+	Returns the number of active threads in the current thread's thread group.
+
+2. ManagementFactory.getThreadMXBean().getThreadCount() doesn't limit itself to thread groups as Thread.activeCount() does.
+
+3. Additionally, external debuggers should list all active threads (and allow you to suspend any number of them) if you wish to monitor them in real-time.
+
+	Useful tool for debugging java programs, it gives the number of threads and other relevant info on them:
+	jconsole <process-id>
+	
+	jconsole and jvisualvm are the 
+
+4. This will give you the total number of threads in your VM :
+
+	int nbThreads =  Thread.getAllStackTraces().keySet().size();
+
+	Now, if you want all threads currently executing, you can do that :
+
+	int nbRunning = 0;
+	for (Thread t : Thread.getAllStackTraces().keySet()) {
+		if (t.getState()==Thread.State.RUNNABLE) nbRunning++;
+	}
+-------------------------------------
+Abstraction vs Encapsulation
+
+1. Abstraction focuses on the outside view of an object (i.e. the interface) Encapsulation (information hiding) prevents clients from seeing it’s inside view, where the behavior of the abstraction is implemented.
+
+2. Abstraction solves the problem in the design side while Encapsulation is the Implementation.
+
+3. Abstraction lets you focus on what the object does instead of how it does it. Encapsulation means hiding the code and data into a single unit to protect the data from outside world.
+
+4. The part that is hidden relates to encapsulation while the part that is exposed relates to abstraction.
+
+5. In abstraction we hide something to reduce the complexity of it (implementation hiding) and In encapsulation we hide something to protect the data (info hiding).
+-------------------------------------
+Abstraction
+Abstraction is the concept of hiding the internal details and describing things in simple terms. For example, a method that adds two integers. The method internal processing is hidden from outer world. There are many ways to achieve abstraction in object oriented programming, such as encapsulation and inheritance.
+
+A java program is also a great example of abstraction. Here java takes care of converting simple statements to machine language and hides the inner implementation details from outer world. You can use abstraction using Interface and Abstract class in Java.
+
+=> abstraction is getting interested from reality .
+=> Implementation hiding.
+
+Encapsulation
+Encapsulation is the technique used to implement abstraction in object oriented programming. Encapsulation is used for access restriction to a class members and methods.
+
+=> wrapping of data and methods in single entity referred as class.
+=> Information Hiding.
+
+Access modifier keywords are used for encapsulation in object oriented programming. For example, encapsulation in java is achieved using private, protected and public keywords.
+
+Polymorphism
+Polymorphism is the concept where an object behaves differently in different situations. There are two types of polymorphism – compile time polymorphism and runtime polymorphism. Compile time polymorphism is achieved by method overloading. 
+
+Method overloading - methods' name is same but arguments are different. Here compiler will be able to identify the method to invoke at compile time, hence it’s called compile time polymorphism.
+
+Runtime polymorphism is implemented when we have “IS-A” relationship between objects. This is also called as method overriding because subclass has to override the superclass method for runtime polymorphism. Compiler is not able to decide which class method will be invoked. This decision is done at runtime, hence the name as runtime polymorphism or dynamic method dispatch.
+
+Inheritance
+Inheritance is the object oriented programming concept where an object is based on another object. Inheritance is the mechanism of code reuse. The object that is getting inherited is called superclass and the object that inherits the superclass is called subclass.
+
+We use extends keyword in java to implement inheritance. 
+
+Association
+Association is the OOPS concept to define the RELATIONSHIP between objects. Association defines the multiplicity between objects. For example Teacher and Student objects. There is one to many relationship between a teacher and students. Similarly a student can have one to many relationship with teacher objects. However both student and teacher objects are independent of each other.
+
+Aggregation
+Aggregation is a special type of association. In aggregation, objects have their own life cycle but there is an ownership. Whenever we have “HAS-A” relationship between objects and ownership then it’s a case of aggregation. Ex: Employee has an Address.
+
+Composition
+Composition is a special case of aggregation. Composition is a more restrictive form of aggregation. When the contained object in “HAS-A” relationship can’t exist on it’s own, then it’s a case of composition. For example, House has-a Room. Here room can’t exist without house.
+-------------------------------------
+
+
+
