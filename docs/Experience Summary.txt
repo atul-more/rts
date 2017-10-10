@@ -43,17 +43,12 @@ Customer Domain	Sales Compensation and performance Management, Retails Appointme
 
 To-do
 
-
 Abstraction example - normal class, abstract class, interface
 Polymorphism example
-How to runtime call a method passing just the object of a class
-ArrayList vs HashMap
-How to use ArrayList for storing Employee objects
+
 What is type erasure
 Generics features
-Experience with Multithreading
-What is URL Rewriting
-Difference between arraylist vector
+
 Difference between Statement PrepareStatement
 Junit Implementation ... Why didn't you use mockito
 JDBC Driver used... difference
@@ -81,7 +76,9 @@ struts 2 life cycle
 Which action classes are used in 
 what all design patterns have you worked with
 singleton design pattern - what's the effect of serialization
+different ways to create singleton class
 Explaing MVC in struts
+design patterns in java
 ----------------------------------------
 
 http://www.journaldev.com/1330/java-collections-interview-questions-and-answers
