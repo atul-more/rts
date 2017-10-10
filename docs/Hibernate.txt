@@ -466,6 +466,311 @@ Aggregation is a special type of association. In aggregation, objects have their
 Composition
 Composition is a special case of aggregation. Composition is a more restrictive form of aggregation. When the contained object in “HAS-A” relationship can’t exist on it’s own, then it’s a case of composition. For example, House has-a Room. Here room can’t exist without house.
 -------------------------------------
+Java Heap Space
 
+Java Heap space is used by java runtime to allocate memory to Objects and JRE classes. Whenever we create any object, it’s always created in the Heap space.
+
+Garbage Collection runs on the heap memory to free the memory used by objects that doesn’t have any reference. Any object created in the heap space has global access and can be referenced from anywhere of the application.
+
+Java Stack Memory
+
+Java Stack memory is used for execution of a thread. They contain method specific values that are short-lived and references to other objects in the heap that are getting referred from the method.
+
+Stack memory is always referenced in LIFO (Last-In-First-Out) order. Whenever a method is invoked, a new block is created in the stack memory for the method to hold local primitive values and reference to other objects in the method.
+
+As soon as method ends, the block becomes unused and become available for next method. Stack memory size is very less compared to Heap memory.
+
+Heap and Stack Memory in Java Program
+
+Let’s understand the Heap and Stack memory usage with a simple program.
+public class Memory {
+
+	public static void main(String[] args) { // Line 1
+		int i=1; // Line 2
+		Object obj = new Object(); // Line 3
+		Memory mem = new Memory(); // Line 4
+		mem.foo(obj); // Line 5
+	} // Line 9
+
+	private void foo(Object param) { // Line 6
+		String str = param.toString(); //// Line 7
+		System.out.println(str);
+	} // Line 8
+}
+
+Let’s go through the steps of execution of the program.
+
+- As soon as we run the program, it loads all the Runtime classes into the Heap space. When main() method is found at line 1, Java Runtime creates stack memory to be used by main() method thread.
+- We are creating primitive local variable at line 2, so it’s created and stored in the stack memory of main() method.
+- Since we are creating an Object in line 3, it’s created in Heap memory and stack memory contains the reference for it. Similar process occurs when we create Memory object in line 4.
+- Now when we call foo() method in line 5, a block in the top of the stack is created to be used by foo() method. Since Java is pass by value, a new reference to Object is created in the foo() stack block in line 6.
+- A string is created in line 7, it goes in the String Pool in the heap space and a reference is created in the foo() stack space for it.
+- foo() method is terminated in line 8, at this time memory block allocated for foo() in stack becomes free.
+- In line 9, main() method terminates and the stack memory created for main() method is destroyed. Also the program ends at this line, hence Java Runtime frees all the memory and end the execution of the program.
+
+Difference between Java Heap Space and Stack Memory
+1. Heap memory is used by all the parts of the application whereas stack memory is used only by one thread of execution.
+2. Whenever an object is created, it’s always stored in the Heap space and stack memory contains the reference to it. Stack memory only contains local primitive variables and reference variables to objects in heap space.
+3. Objects stored in the heap are globally accessible whereas stack memory can’t be accessed by other threads.
+4. Memory management in stack is done in LIFO manner whereas it’s more complex in Heap memory because it’s used globally. 
+5. Stack memory is short-lived whereas heap memory lives from the start till the end of application execution.
+6. We can use -Xms and -Xmx JVM option to define the startup size and maximum size of heap memory. We can use -Xss to define the stack memory size.
+7. When stack memory is full, Java runtime throws java.lang.StackOverFlowError whereas if heap memory is full, it throws java.lang.OutOfMemoryError: Java Heap Space error.
+8. Stack memory size is very less when compared to Heap memory. Because of simplicity in memory allocation (LIFO), stack memory is very fast when compared to heap memory.
+9. Where is it stored? Variables that are allocated on the stack are accessible directly from memory, and as such, these can run very fast. Accessing objects on the heap, on the other hand, takes more time.
+10. When does the allocation happen? On the stack, memory allocation happens when the program is compiled. Meanwhile, on the heap, it begins when the program is run.
+-------------------------------------
+ArrayList vs HashMap in Java
+
+A Map is a map, or "associative array". It has a key->value layout. A List is on the other hand a list, which is an ordered collection of elements.
+
+1) Implementation: ArrayList implements List Interface while HashMap is an implementation of Map interface. 
+
+2) Memory consumption: ArrayList stores the element’s value alone and internally maintains the indexes for each element.
+
+	 ArrayList<String> arraylist = new ArrayList<String>();
+	//String value is stored in array list
+	 arraylist.add("Test String");
+	 
+HashMap stores key & value pair. For each value there must be a key associated in HashMap. That clearly shows that memory consumption is high in HashMap compared to the ArrayList.
+
+	HashMap<Integer, String> hmap= new HashMap<Integer, String>();
+	//String value stored along with the key value in hash map
+	 hmap.put(123, "Test String");
+	 
+3) Order: ArrayList maintains the insertion order while HashMap doesn’t. Which means ArrayList returns the list items in the same order in which they got inserted into the list. 
+
+4) Duplicates: ArrayList allows duplicate elements but HashMap doesn’t allow duplicate keys (It does allow duplicate values).
+
+5) Nulls: ArrayList can have any number of null elements. HashMap allows one null key and any number of null values.
+
+6) get method: In ArrayList we can get the element by specifying the index of it. In HashMap, the elements is being fetched by specifying the corresponding key.
+
+7) Keys of HashMap must implements equals and hashCode method correctly, ArrayList doesn't have that requirement but its good to have that because contains()  method of ArrayList will use equals() method to see if that object already exists or not.
+
+When you need a structure from which you will be retrieving items randomly - use a HashMap.
+When you will be retrieving items in order (e.g. using a for loop) - use an ArrayList
+
+There's also a combined data structure, the LinkedHashMap, which offers fast access to arbitrary elements as well as predictable ordering.
+
+Similarity between ArrayList and HashMap in Java
+
+1) BothArrayList and HashMap are not synchronized, you should not use them in the multi-threading environment without external  synchronization.
+
+2) Both ArrayList and HashMap Iterator are fail-fast, they will throw ConcurrentModificationException as soon as they detect any structural change in ArrayList or HashMap once Iterator is created.
+
+3) Both ArrayList and HashMap allows null. 
+
+4) Both ArrayList and HashMap allows duplicate elements.
+
+5) ArrayList is backed by array similarly, HashMap is also internally implemented by Array.
+
+6) Both ArrayList and HashMap can be traversed through Iterator in Java.
+
+Practical Example:
+Employee objects are stored using HashMap. How to use ArrayList for storing Employee objects?
+
+List empList = ArrayList<Employee>;
+
+Employee id can be the index of the list.
+-------------------------------------
+ArrayList Vs LinkedList
+
+1) Search: ArrayList search operation is pretty fast compared to the LinkedList search operation. get(int index) in ArrayList gives the performance of O(1) while LinkedList performance is O(n).
+
+Reason: ArrayList maintains index based system for its elements as it uses array data structure implicitly which makes it faster for searching an element in the list. On the other side LinkedList implements doubly linked list which requires the traversal through all the elements for searching an element.
+
+2) Deletion: LinkedList remove operation gives O(1) performance while ArrayList gives variable performance: O(n) in worst case (while removing first element) and O(1) in best case (While removing last element).
+
+Conclusion: LinkedList element deletion is faster compared to ArrayList.
+
+Reason: LinkedList’s each element maintains two pointers (addresses) which points to the both neighbor elements in the list. Hence removal only requires change in the pointer location in the two neighbor nodes (elements) of the node which is going to be removed. While In ArrayList, all the elements need to be shifted to fill out the space created by removed element.
+
+3) Inserts Performance: LinkedList add method gives O(1) performance while ArrayList gives O(n) in worst case. Reason is same as explained for remove.
+
+4) Memory Overhead: ArrayList maintains indexes & element data whereas LinkedList maintains element data and two pointers for neighbor nodes hence the memory consumption is high in LinkedList comparatively.
+
+There are few similarities between these classes which are as follows:
+
+- Both ArrayList and LinkedList are implementation of List interface.
+- They both maintain the elements insertion order which means while displaying ArrayList and LinkedList elements the result set would be having the same order in which the elements got inserted into the List.
+- Both these classes are non-synchronized and can be made synchronized explicitly by using Collections.synchronizedList method.
+- The iterator and listIterator returned by these classes are fail-fast (if list is structurally modified at any time after the iterator is created, in any way except through the iterator’s own remove or add methods, the iterator will throw a ConcurrentModificationException).
+
+When to use LinkedList and when to use ArrayList?
+1) As explained above the insert and remove operations give good performance [O(1)] in LinkedList compared to ArrayList[O(n)]. Hence if there is a requirement of frequent addition and deletion in application then LinkedList is a best choice.
+
+2) Search (get method) operations are fast in Arraylist [O(1)] but not in LinkedList [O(n)] so If there are less add and remove operations and more search operations requirement, ArrayList would be your best bet.
+-------------------------------------
+ArrayList and Vector
+ArrayList and Vector both implements List interface and maintains insertion order.
+
+They both use Array as a data structure internally. However there are few differences in the way they store and process the data. 
+
+1) Synchronization: ArrayList is non-synchronized which means multiple threads can work on ArrayList at the same time.
+
+Vector is synchronized. This means if one thread is working on Vector, no other thread can get a hold of it. Unlike ArrayList, only one thread can perform an operation on vector at a time.
+
+2) Resize: Both ArrayList and Vector can grow and shrink dynamically to maintain the optimal use of storage, however the way they resized is different. ArrayList grow by half of its size when resized while Vector doubles the size of itself by default when grows.
+
+3) Performance: ArrayList gives better performance as it is non-synchronized. Vector operations gives poor performance as they are thread-safe, the thread which works on Vector gets a lock on it which makes other thread wait till the lock is released.
+
+4) fail-fast: What is fail-fast => If the collection (ArrayList, vector etc) gets structurally modified by any means, except the add or remove methods of iterator, after creation of iterator then the iterator will throw ConcurrentModificationException. Structural modification refers to the addition or deletion of elements from the collection.
+
+As per the Vector javadoc the Enumeration returned by Vector is NOT fail-fast. On the other side the iterator and listIterator returned by ArrayList are fail-fast.
+
+5) Who belongs to collection framework really? The vector was NOT the part of collection framework, it has been included in collections later. It can be considered as Legacy code. There is nothing about Vector which List collection cannot do. Therefore Vector should be avoided. If there is a need of thread-safe operation make ArrayList synchronized or use CopyOnWriteArrayList which is a thread-safe variant of ArrayList.
+
+There are few similarities between these classes which are as follows:
+- Both Vector and ArrayList use growable array data structure.
+- The iterator and listIterator returned by these classes (Vector and ArrayList) are fail-fast.
+- They both are ordered collection classes as they maintain the elements insertion order.
+- Vector & ArrayList both allows duplicate and null values.
+- They both grows and shrinks automatically when overflow and deletion happens.
+
+When to use ArrayList and when to use vector?
+
+It totally depends on the requirement. If there is a need to perform “thread-safe” operation the vector is your best bet as it ensures that only one thread access the collection at a time.
+
+Performance: Synchronized operations consumes more time compared to non-synchronized ones so if there is no need for thread safe operation, ArrayList is a better choice as performance will be improved because of the concurrent processes.
+-------------------------------------
+How to make ArrayList synchronized?
+As I stated above ArrayList methods are non-synchronized but still if there is a need you can make them synchronized like this –
+
+//Use Collecions.synzhonizedList method
+List list = Collections.synchronizedList(new ArrayList());
+...
+
+//If you wanna use iterator on the synchronized list, use it
+//like this. It should be in synchronized block.
+synchronized (list) {
+  Iterator iterator = list.iterator();
+  while (iterator.hasNext())
+      ...
+      iterator.next();
+      ...
+}
+-------------------------------------
+How to sort Hashtable in java
+Hashtable doesn’t preserve the insertion order, neither it sorts the inserted data based on keys or values. Which means no matter what keys & values you insert into Hashtable, the result would not be in any particular order.
+
+The are ways to sort Hashtable using Collections.list and Collections.sort, however best thing to do is use LinkedHashMap or TreeMap.
+
+Use LinkedHashMap: When you want to preserve the insertion order.
+Use TreeMap: When you want to sort the key-value pairs.
+
+      TreeMap<Integer, String> tm= new TreeMap<Integer, String>();
+      tm.put(10, "Chaitanya");
+      tm.put(1, "Ajeet");
+      tm.put(11, "Test");
+      // Get a set of the entries
+      Set set = tm.entrySet();
+      // Get an iterator
+      Iterator i = set.iterator();
+      // Display elements
+      while(i.hasNext()) {
+        Map.Entry me = (Map.Entry)i.next();
+        System.out.print(me.getKey() + ": ");
+        System.out.println(me.getValue());
+      }
+-------------------------------------
+HashMap vs Hashtable
+
+1) HashMap is non-synchronized. This means if it’s used in multithread environment then more than one thread can access and process the HashMap simultaneously.
+
+Hashtable is synchronized. It ensures that no more than one thread can access the Hashtable at a given moment of time. The thread which works on Hashtable acquires a lock on it to make the other threads wait till its work gets completed.
+
+2) HashMap allows one null key and any number of null values.
+
+Hashtable doesn’t allow null keys and null values.
+
+3) HashMap implementation LinkedHashMap maintains the insertion order and TreeMap sorts the mappings based on the ascending order of keys.
+
+Hashtable doesn’t guarantee any kind of order. It doesn’t maintain the mappings in any particular order.
+
+4) Initially Hashtable was not the part of collection framework it has been made a collection framework member later after being retrofitted to implement the Map interface.
+
+HashMap implements Map interface and is a part of collection framework since the beginning.
+
+5) Another difference between these classes is that the Iterator of the HashMap is a fail-fast and it throws ConcurrentModificationException if any other Thread modifies the map structurally by adding or removing any element except iterator’s own remove() method. In Simple words fail-fast means: When calling iterator.next(), if any modification has been made between the moment the iterator was created and the moment next() is called, a ConcurrentModificationException is immediately thrown.
+
+Enumerator for the Hashtable is not fail-fast.
+
+When to use HashMap and Hashtable?
+
+1) As stated above the main difference between HashMap & Hashtable is synchronization. If there is a need of thread-safe operation then Hashtable can be used as all its methods are synchronized but it’s a legacy class and should be avoided as there is nothing about it, which cannot be done by HashMap. For multi-thread environment I would recommend you to use ConcurrentHashMap (Almost similar to Hashtable) or even you can make the HashMap synchronized explicitly.
+
+2) Synchronized operation gives poor performance so it should be avoided until unless required. Hence for non-thread environment HashMap should be used without any doubt.
+-------------------------------------
+Is Java pass-by-value or pass-by-reference?
+Java is always pass-by-value. Unfortunately, they decided to call the location of an object a "reference". When we pass the value of an object, we are passing the reference to it. This is confusing to beginners.
+
+The key to understanding this is that something like
+
+Dog myDog;
+is not a Dog; it's actually a pointer to a Dog.
+
+What that means, is when you have
+
+Dog myDog = new Dog("Rover");
+foo(myDog);
+you're essentially passing the address of the created Dog object to the foo method.
+
+(I say essentially because Java pointers aren't direct addresses, but it's easiest to think of them that way)
+
+Suppose the Dog object resides at memory address 42. This means we pass 42 to the method.
+
+if the Method were defined as
+
+public void foo(Dog someDog) {
+    someDog.setName("Max");     // AAA
+    someDog = new Dog("Fifi");  // BBB
+    someDog.setName("Rowlf");   // CCC
+}
+let's look at what's happening.
+
+the parameter someDog is set to the value 42
+at line "AAA"
+someDog is followed to the Dog it points to (the Dog object at address 42)
+that Dog (the one at address 42) is asked to change his name to Max
+at line "BBB"
+a new Dog is created. Let's say he's at address 74
+we assign the parameter someDog to 74
+at line "CCC"
+someDog is followed to the Dog it points to (the Dog object at address 74)
+that Dog (the one at address 74) is asked to change his name to Rowlf
+then, we return
+Now let's think about what happens outside the method:
+
+Did myDog change?
+
+There's the key.
+
+Keeping in mind that myDog is a pointer, and not an actual Dog, the answer is NO. myDog still has the value 42; it's still pointing to the original Dog (but note that because of line "AAA", its name is now "Max" - still the same Dog; myDog's value has not changed.)
+-------------------------------------
+Experience with Multithreading?
+- Finetune the no of threads available for execution on WLS - to manage concurrent no of users. Normally, app server is well tested to handle multi-threading.
+- Snippet of code marked with Synchronized block to take care of issues because multi-threading like use of Singleton DP while creating DB connection object.
+- Otherwise Theoretical knowledge: You need that knowledge in understanding and debugging app issues related to concurrenct execution of threads.
+-------------------------------------
+What is URL rewriting?
+URL manipulation, also called URL rewriting, is the process of altering (often automatically by means of a program written for that purpose) the parameters in a URL (Uniform Resource Locator). 
+
+In URL rewriting, we append a token or identifier to the URL of the next Servlet or the next resource. We can send parameter name/value pairs using the following format:
+
+url?name1=value1&name2=value2&??
+
+When the user clicks the hyperlink, the parameter name/value pairs will be passed to the server. From a Servlet, we can use getParameter() method to obtain a parameter value.
+
+Advantage of URL Rewriting
+
+It will always work whether cookie is disabled or not (browser independent).
+Extra form submission is not required on each pages.
+
+Disadvantage of URL Rewriting
+
+It will work only with links.
+It can send Only textual information.
+-------------------------------------
 
 
