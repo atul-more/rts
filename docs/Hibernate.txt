@@ -772,5 +772,85 @@ Disadvantage of URL Rewriting
 It will work only with links.
 It can send Only textual information.
 -------------------------------------
+What is SQL Injection?
+SQL injection is one of the most common web hacking techniques. It is the placement of malicious code in SQL statements, via web page input. It may also be used to destroy your database.
 
+By leveraging an SQL Injection vulnerability, given the right circumstances, an attacker can use it to bypass a web application’s authentication and authorization mechanisms and retrieve the contents of an entire database. SQL Injection can also be used to add, modify and delete records in a database, affecting data integrity.
 
+An SQL Injection needs just two conditions to exist – a relational database that uses SQL, and a user controllable input which is directly used in an SQL query.
+
+Ex: SQL injection usually occurs when you ask a user for input, like their username/userid, and instead of a name/id, the user gives you an SQL statement that you will unknowingly run on your database.
+
+UserId: 105 OR 1=1
+
+Then, the SQL statement will look like this: SELECT * FROM Users WHERE UserId = 105 OR 1=1;
+It will return ALL rows from the "Users" table, since OR 1=1 is always TRUE.
+
+Another ex. 
+User Name: " or ""="
+Password: " or ""="
+
+The code at the server will create a valid SQL statement like this:
+SELECT * FROM Users WHERE Name ="" or ""="" AND Pass ="" or ""=""
+The SQL above is valid and will return all rows from the "Users" table, since OR ""="" is always TRUE.
+
+java.sql.Statement enforces SQL injection, because we end up using query formed using concatenated SQL strings in java JDBC.
+java.sql.PreparedStatement prevents SQL injection, because text for all the parameter values is escaped in java JDBC.
+-------------------------------------
+JDBC PreparedStatement example – Batch Update
+
+dbConnection.setAutoCommit(false);//commit trasaction manually
+
+PreparedStatement = dbConnection.prepareStatement(insertTableSQL);
+
+preparedStatement.setInt(1, 101);
+.
+.
+preparedStatement.setTimestamp(4, getCurrentTimeStamp());
+preparedStatement.addBatch();
+
+preparedStatement.setInt(1, 102);
+.
+.
+preparedStatement.setTimestamp(4, getCurrentTimeStamp());
+preparedStatement.addBatch();
+
+preparedStatement.executeBatch();
+dbConnection.commit();
+
+Batch Update is not limit to Insert statement, it’s apply for Update and Delete statement as well.
+
+Alternatively, you can use normal executeUpdate() method. However, every executeUpdate() will hit database once. For batch update process, it hits database when executeBatch() is called.
+-------------------------------------
+java.sql.CallableStatement
+The java.sql.CallableStatement is an interface which is used to execute SQL stored procedures, cursors and functions in java. 
+
+java.sql.CallableStatement extends the PreparedStatement interface. 
+ 
+As CallableStatement is sub interface of PreparedStatement it adds a level of abstraction, so the execution of stored procedure or functions need not to be dbms specific.
+
+How to deal with SQL stored procedures IN parameter in java- 
+ 1) set methods are used for setting IN parameter values. (Must know : set methods are inherited from java.sql.PreparedStatement) 
+
+How to deal with SQL stored procedures OUT parameter in java- 
+ 1) OUT parameters must be registered in java before executing the stored procedure, 
+ 2) Execute database stored procedure,
+ 3) Then retrieve values of OUT parameters using using get methods. 
+ 
+How to deal with SQL stored procedures IN OUT parameter in java- 
+ - Like IN parameters, set methods are used for setting IN OUT parameter values. 
+ - Like OUT parameters, IN OUT parameters must be registered in java before executing the stored procedure, 
+ - Execute database stored procedure, Then like OUT parameters, retrieve values of IN OUT parameters using using get methods. 
+-------------------------------------
+Statement object execute methods:
+
+Once you've created a Statement object, you can then use it to execute an SQL statement with one of its three execute methods.
+
+1. boolean execute (String SQL): Returns a boolean value of true if a ResultSet object can be retrieved; otherwise, it returns false. Use this method to execute SQL DDL statements or when you need to use truly dynamic SQL.
+
+2. int executeUpdate (String SQL): Returns the number of rows affected by the execution of the SQL statement. Use this method to execute SQL statements for which you expect to get a number of rows affected - for example, an INSERT, UPDATE, or DELETE statement.
+
+3. ResultSet executeQuery (String SQL): Returns a ResultSet object. Use this method when you expect to get a result set, as you would with a SELECT statement.
+
+If you close the Connection object first, it will close the Statement object as well. However, you should always explicitly close the Statement object to ensure proper cleanup.
+-------------------------------------
