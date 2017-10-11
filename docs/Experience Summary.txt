@@ -49,7 +49,6 @@ Polymorphism example
 What is type erasure
 Generics features
 
-Difference between Statement PrepareStatement
 Junit Implementation ... Why didn't you use mockito
 JDBC Driver used... difference
 Design Patterns used.
