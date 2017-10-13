@@ -854,3 +854,240 @@ Once you've created a Statement object, you can then use it to execute an SQL st
 
 If you close the Connection object first, it will close the Statement object as well. However, you should always explicitly close the Statement object to ensure proper cleanup.
 -------------------------------------
+JDBC Driver:
+JDBC Driver is a software component that enables java application to interact with the database.There are 4 types of JDBC drivers:
+
+- Type 1, JDBC-ODBC Bridge plus ODBC Driver : JDBC-ODBC bridge driver uses ODBC driver to connect to the database. The JDBC-ODBC bridge driver converts JDBC method calls into the ODBC function calls. This is now discouraged because of thin driver.
+	- Easy to use. Can be easily connected to any database.
+	- Performance degraded because JDBC method call is converted into the ODBC function calls.
+	- The ODBC driver needs to be installed on the client machine.
+-  Type 2: A native API partly Java technology-enabled driver: The Native API driver uses the client-side libraries of the database. The driver converts JDBC method calls into native calls of the database API. 
+	- Better in performance than type 1.
+	- The Native driver & Vendor client library need to be installed on the each client machine.	
+- Network Protocol driver, Type 3: Pure Java Driver for Database Middleware: The Network Protocol driver uses middleware (application server) that converts JDBC calls directly or indirectly into the vendor-specific database protocol. It is fully written in java.
+	- No client side library is required. 
+	- Network support is required on client machine.
+	- Requires database-specific coding to be done in the middle tier.
+- Thin driver, Type 4: Direct-to-Database Pure Java Driver: The thin driver converts JDBC calls directly into the vendor-specific database protocol. That is why it is known as thin driver. It is fully written in Java language.
+	- Better performance than all other drivers.
+	- No software is required at client side or server side.
+	- Driver depends on Database.
+
+In my project, we have used datasource in weblogic for getting DB connection. It internally uses Type 4 (Thin) driver.
+
+For test automation & FTP/Email Framework, program uses type 4 (JDBC Thin) driver as well i.e. oracle.jdbc.OracleDriver or updated oracle.jdbc.driver.OracleDriver.
+-------------------------------------
+Unix experience?
+I've 6+ years of experience working with Unix or Linux shell scripts. Various activities that I have done on Unix or Linux servers are:
+	1. Installing softwares & verifying them (like Java, Maven, SonarQube etc.)
+	2. File Management - disk full issue, file copy with SCP, SFTP etc.
+	3. SSH Putty session mgmt - login to the server, switch users using sudo commands.
+	4. Writing shell scripts for different cron jobs.
+	5. Modifying cron jobs.
+	6. Checking log files.
+	7. Deploying war files on WLS; WL Server restart 
+	8. Modifying files using VI editor
+		Basic VI commands:
+			:wq - quit with saving (write & quit)
+			:q! - quit without saving; q - quit
+			sh - invoke shell
+			/<pattern>: search forward a string pattern in file; n - go to next occurrence; N - go to previous occurrence.
+			?<pattern>: search backward a string pattern in file;
+			dd - delete a line; nd - delete n characters.
+			a - Append after; A - Append at end of line
+			i, I - Insert before
+			x - Delete after; X - Delete before
+			:0<Return> or 1G - move cursor to first line in file
+			:n<Return> or nG - move cursor to line n
+			:$<Return> or G - move cursor to last line in file
+			r - replace single character under cursor (no <Esc> needed)
+			R - replace characters, starting with current cursor position, until <Esc> hit
+			yy - copy (yank, cut) the current line into the buffer
+			Nyy or yNy - copy (yank, cut) the next N lines, including the current line, into the buffer
+			p - put (paste) the line(s) in the buffer into the text after the current line
+			^g - provides the current line number, along with the total number of lines, in the file at the bottom of the screen
+-------------------------------------
+Design Patterns in Java:
+A design pattern is a well described solution to a common software problem. Some of the benefits of using design patterns are:
+
+- Design Patterns are already defined and provides industry standard approach to solve a recurring problem, so it saves time if we sensibly use the design pattern. 
+- Using design patterns promotes reusability that leads to more robust and highly maintainable code. 
+- It makes our code easy to understand and debug. 
+- It leads to faster development. New members of team can understand it easily.
+
+Java Design Patterns are divided into three categories – creational, structural, and behavioral design patterns
+			
+Creational Design Patterns
+	Singleton Pattern
+	Factory Pattern
+	Abstract Factory Pattern
+	Builder Pattern
+	Prototype Pattern
+Structural Design Patterns
+	Adapter Pattern
+	Composite Pattern
+	Proxy Pattern
+	Flyweight Pattern
+	Facade Pattern
+	Bridge Pattern
+	Decorator Pattern
+Behavioral Design Patterns
+	Template Method Pattern
+	Mediator Pattern
+	Chain of Responsibility Pattern
+	Observer Pattern
+	Strategy Pattern
+	Command Pattern
+	State Pattern
+	Visitor Pattern
+	Interpreter Pattern
+	Iterator Pattern
+	Memento Pattern
+-------------------------------------
+Singleton Design Pattern:
+Singleton pattern restricts the instantiation of a class and ensures that only one instance of the class exists in the java virtual machine. 
+
+The singleton class must provide a global access point to get the instance of the class. Singleton pattern is used for logging, drivers objects, caching and thread pool.
+
+There are many classes in JDK which is implemented using Singleton pattern like java.lang.Runtime which provides getRuntime() method to get access of it and used to get free memory and total memory in Java. Other Ex - Java.awt.Desktop with getDesktop(); Java.awt.Toolkit with getDefaultToolkit() etc. 
+
+Another example is a utility classes like Popup in GUI application, if you want to show popup with message you can have one PopUp class on whole GUI application and anytime just get its instance, and call show() with message.
+
+Java Singleton Pattern is one of the Gangs of Four Design patterns and comes in the Creational Design Pattern category. 
+
+Ways to implement it:
+
+1. With public static final field initialized during class loading (Eager Loading)
+In eager initialization, the instance of Singleton Class is created at the time of class loading. But it has a drawback that instance is created even though client application might not be using it. Also, this method doesn’t provide any options for exception handling.
+
+public class SingletonClass
+{
+    private static final SingletonClass instance = new SingletonClass();
+	
+    //private constructor to avoid client applications to use constructor
+	private SingletonClass() {
+    }
+
+    public static SingletonClass getInstance() {
+      return instance;
+    }
+}
+
+2. Static block initialization
+Static block initialization implementation is similar to eager initialization, except that instance of class is created in the static block that provides option for exception handling.
+
+public class SingletonClass
+{
+    private static SingletonClass instance;
+	
+    //private constructor to avoid client applications to use constructor
+	private SingletonClass() {
+    }
+	
+	//static block initialization for exception handling
+    static{
+        try{
+            instance = new SingletonClass();
+        }catch(Exception e){
+            throw new RuntimeException("Exception occured in creating singleton instance");
+        }
+    }
+	 
+
+    public static SingletonClass getInstance() {
+      return instance;
+    }
+}
+
+Again, it creates the instance even before it’s being used and that is not the best practice to use. 
+
+3. By synchronizing getInstance() method (Lazy Loading)
+
+Before 1.5:
+static Singleton instance;
+
+public static synchronized Singleton getInstance() {
+  if (instance == null)
+    instance == new Singleton();
+  return instance;
+}
+
+This approach reduces the performance because of cost associated with the synchronized method.
+
+After 1.5:
+Changes to the memory model in 1.5 enabled the infamous Double-Checked Locking (DCL) idiom. With it, the synchronized block is used inside IF condition with an additional check to ensure that only one instance of singleton class is created. To implement DCL, you check a volatile field in the common path and only synchronize when necessary:
+
+static volatile Singleton instance;
+
+public static Singleton getInstance() {
+  if (instance == null) {
+    synchronized (Singleton.class) {
+      if (instance == null)
+        instance == new Singleton();
+    }
+  }
+  return instance;
+}
+
+But volatile isn't that much faster than synchronized. Use #4 (Singleton holder pattern) instead.
+
+Double checked locking should only be used when you have requirement for lazy initialization otherwise use Enum to implement singleton or simple static final variable.
+
+4. Usign static nested class (Singleton holder pattern)
+Initialization on Demand Holder (IODH) idiom requires very little code and has zero synchronization overhead (even faster than volatile). IODH utilizes lazy class initialization - JVM will not initialize instance until someone calls getInstance().
+
+It is also called Bill Pugh Singleton Implementation. And it uses a inner static holder class. This is the most widely used approach for Singleton class as it doesn’t require synchronization.
+
+public class Singleton {
+	private Singleton() {}
+	
+	private static class SingletonHolder {
+	  private static final Singleton INSTANCE = new Singleton();    
+	}
+
+	public static Singleton getInstance() {
+	  return SingletonHolder.INSTANCE;
+	}
+}
+
+5. Using Enums (since Java 1.5): 
+A single-element enum type is the best way to implement a singleton. Java ensures that any enum value is instantiated only once in a Java program. Since Java Enum values are globally accessible, so is the singleton. 
+
+public enum Singleton { 
+    INSTANCE;
+	
+    public void myMethod(){  
+    }
+}
+-------------------------------------
+How do you prevent for creating another instance of Singleton during serialization?
+You can prevent this by using readResolve() method, since during serialization readObject() is used to create instance and it return new instance every time. However, you can replace it with original Singleton instance by using readResolve().
+
+Use Enum to create Singleton because serialization of enum is taken care by JVM and it guarantees single instance.
+-------------------------------------
+Static Vs Singleton class:
+
+The essential difference is: The existence form of a singleton is an object, static is not. This conduced the following things:
+
+Singleton can be extended. Static class cannot be extended.
+Singleton creation may not be threadsafe if it isn't implemented properly. Static are thread-safe.
+Singleton can be passed around as an object. Static cannot.
+Singleton can be garbage collected. Static cannot.
+
+Singleton Class is class of which only single instance can exists per classloader. No instance of this class exists. Only fields and methods can be directly accessed as constants or helper methods.
+
+A static class is one that has only static methods, for which a better word would be "functions". The design style embodied in a static class is purely procedural.
+
+Singleton, on the other hand, is a pattern specific to OO design. It is an instance of an object (with all the possibilities inherent in that, such as polymorphism), with a creation procedure that ensures that there is only ever one instance of that particular role over its entire lifetime.
+
+"When to choose which one?". what are the advantages of singleton class over static class, these questions comes at the design stages.
+
+Singleton: Usage: classes that serve as global configuration , ex: Trial version of software with one database connection, JDK Runtime classes instances per jvm.
+
+When to go: 1.While developing your code,you think of forward compatibilty, like tomorrow when you need to convert this singleton class to normal class or allow subclassing. 2. You can provide lazy loading feature , when this singleton class is heavy.
+
+static: Usage: classes that basically does conversions,utility functions. please check Math class.
+
+When to go: 1. helper classes, used by all the classes in your api development.
+
+disadvantage: 1. classes are eagerly loaded .
