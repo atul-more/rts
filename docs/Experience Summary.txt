@@ -44,36 +44,7 @@ Customer Domain	Sales Compensation and performance Management, Retails Appointme
 To-do
 
 Abstraction example - normal class, abstract class, interface
-Polymorphism example
-
-What is type erasure
-Generics features
-
-Database design
-Left outer join
-Are you a quick learner
-
-constraints to implement hashcode & equals method
-serialId significance in serialized class
-
-
-What project planning work did you do
-What work have you done for DevOps 
 App block diagram and explaing it w.r.t. technologies
-why change in company
-diff get & load method - hibernate
-which version of hibernate you have used
-difference between openSession and getCurrentSession
-difference between get & load mehthod
-struts 1 life cycle
-struts 2 life cycle
-Which action classes are used in 
-what all design patterns have you worked with
-singleton design pattern - what's the effect of serialization
-different ways to create singleton class
-Explaing MVC in struts
-design patterns in java
-----------------------------------------
 
 http://www.journaldev.com/1330/java-collections-interview-questions-and-answers
 http://www.java2novice.com/java_interview_questions/create-immutable-class/
