@@ -387,6 +387,22 @@ Advantages:
 - It helps to avoid confusing type casts present in the class hierarchy and thus making the code readable, usable and maintainable.
 - We get a liberty to have more specific return types when overriding methods.
 - Help in preventing run-time ClassCastExceptions on returns.
+
+Ex:
+class A{  
+	A get(){return this;}  
+}  
+  
+class B1 extends A{  
+	B1 get(){return this;}  
+	void message(){System.out.println("welcome to covariant return type");}  
+  
+	public static void main(String args[]){  
+		new B1().get().message();  
+	}  
+}  
+
+Both methods (message in parent & child) have different return types but it is method overriding. It is possible because of covariant return type.
 -------------------------------------
 Static var/method in inheritance?
 - Child can access directly the Static var/method from Parent class if it's not defined with private access specifier.
@@ -943,6 +959,35 @@ Behavioral Design Patterns
 	Interpreter Pattern
 	Iterator Pattern
 	Memento Pattern
+J2EE Patterns
+	These design patterns are specifically concerned with the presentation tier. These patterns are identified by Sun Java Center.
+
+What all design patterns have you worked with:
+I have worked with - 
+	Singleton, Factory, Decorator, Iterator, MVC, Service Locator Pattern, Front Controller, Data Access Object Pattern
+	
+MVC is more of an architectural pattern, but not for complete application. MVC mostly relates to the UI / interaction layer of an application. MVC Pattern stands for Model-View-Controller Pattern. This pattern is used to separate application's concerns.
+	- Model - Model represents an object or JAVA POJO carrying data. It can also have logic to update controller if its data changes.
+	- View - View represents the visualization of the data that model contains.
+	- Controller - Controller acts on both model and view. It controls the data flow into model object and updates the view whenever data changes. It keeps view and model separate.
+
+The service locator design pattern is used when we want to locate various services using JNDI lookup. Considering high cost of looking up JNDI for a service, Service Locator pattern makes use of caching technique. For the first time a service is required, Service Locator looks up in JNDI and caches the service object. Further lookup or same service via Service Locator is done in its cache which improves the performance of application to great extent. Following are the entities of this type of design pattern.
+	- Service - Actual Service which will process the request. Reference of such service is to be looked upon in JNDI server.
+	- Context / Initial Context -JNDI Context, carries the reference to service used for lookup purpose.
+	- Service Locator - Service Locator is a single point of contact to get services by JNDI lookup, caching the services.
+	- Cache - Cache to store references of services to reuse them
+	- Client - Client is the object who invokes the services via ServiceLocator. 
+	
+The front controller design pattern is used to provide a centralized request handling mechanism so that all requests will be handled by a single handler. This handler can do the authentication/ authorization/ logging or tracking of request and then pass the requests to corresponding handlers. Following are the entities of this type of design pattern.
+	- Front Controller - Single handler for all kind of request coming to the application (either web based/ desktop based).
+	- Dispatcher - Front Controller may use a dispatcher object which can dispatch the request to corresponding specific handler.
+	- View - Views are the object for which the requests are made.
+
+Data Access Object Pattern or DAO pattern is used to separate low level data accessing API or operations from high level business services. Following are the participants in Data Access Object Pattern.
+	- Data Access Object Interface - This interface defines the standard operations to be performed on a model object(s).
+	- Data Access Object concrete class -This class implements above interface. This class is responsible to get data from a datasource which can be database / xml or any other storage mechanism.
+	- Model Object or Value Object - This object is simple POJO containing get/set methods to store data retrieved using DAO class.
+	
 -------------------------------------
 Singleton Design Pattern:
 Singleton pattern restricts the instantiation of a class and ensures that only one instance of the class exists in the java virtual machine. 
@@ -1088,6 +1133,467 @@ When to go: 1.While developing your code,you think of forward compatibilty, like
 
 static: Usage: classes that basically does conversions,utility functions. please check Math class.
 
-When to go: 1. helper classes, used by all the classes in your api development.
+When to go: helper classes, used by all the classes in your api development.
+Disadvantage: classes are eagerly loaded.
+-------------------------------------
+Generics features
+Generics allows a type or method to operate on objects of various types while providing compile-time type safety, making Java a fully statically typed language.
 
-disadvantage: 1. classes are eagerly loaded .
+1. Generics are implemented using Type Erasure:
+A class or an interface can be declared to define one or more type parameters and those type parameters should be provided at the time of object construction. Ex. - List<Long> list = new ArrayList<Long>();
+
+If you try to add any other type of element to this list, it will give you compile time error.
+
+Generics helps detect type related errors at compile time and makes your code safe.
+
+Once this piece of code is compiled ,the type information is erased resulting into similar byte code as we would have got if the same piece of code was written using Java 1.4 and below. This results in binary compatibility between different versions of Java. So, a List or List<> are all represented at run-time by the same type, List.
+
+2. Generics does not support sub-typing:
+Ex. - List<Number> numbers = new ArrayList<Integer>(); // will not compile
+
+This would have resulted in ClassCastException at runtime and type safety could not be achieved. 
+
+3. You can't create Generic Arrays:
+because arrays carry runtime type information about the type of elements. 
+
+Arrays uses type information at runtime to check the type of the object it contains and will throw ArrayStoreException if the type does not match. With Generics, type information gets erased at run time and the array store check will succeed in cases where it should fail.
+
+Ex. - 	T[] arr = new T[10];// this code will not compile
+		List<Integer>[] array = new List<Integer>[10]; // does not compile
+
+Arrays are covariant by default, where as Generics does not support covariance. 
+
+If the generic arrays were allowed, then we could assign ints array to an object array because arrays are covariant. After that we could add a List of double to the obj array. We will expect that this will fail with ArrayStoreException because we are assigning List of double to an array of List of integers. But the JVM cannot detect type mismatch because the type information gets erased. Hence the array store check succeeds, although it should have failed.
+
+4. Use of wildcards with extends or super to increase API flexibility
+For example, the addAll method in the Collection interface
+boolean addAll(Collection<? extends E> c)
+=> can not only add collection of type E but also of subtype of E.
+
+Other ex: if we create a List of Number then we can not only add List of number but we can also add List of Integer or any other subtype of Number.
+
+public static <T> boolean addAll(Collection<? super T> c, T... elements) ;
+
+In this method you are adding elements of type T to the collection c. super is used instead of extends because elements are added into the collection c whereas in the previous example of Collection interface addAll method elements were read from the collection . In the Effective Java book, Joshua Bloch calls this PECS . PECS stands for producer extends, consumer super. 
+
+5. Use of Multiple Bounds
+A type parameter can also have multiple bounds:
+<T extends B1 & B2 & B3>
+
+A type variable with multiple bounds is a subtype of all the types listed in the bound. If one of the bounds is a class, it must be specified first. For example:
+	Class A { /* ... */ }
+	interface B { /* ... */ }
+	interface C { /* ... */ }
+
+class D <T extends A & B & C> { /* ... */ }
+-------------------------------------
+Database design:
+DB Design - I wasn't involved with the one from scratch. But I've to understand the existing database design and modify on top of it for the additional functionality. You need to follow the existing practices (starting from nomenclature till the use of indexes, triggers or use of sequences, retrieval of records from db etc).
+
+The DB side experience consists of following activities:
+1. Writing new or modifying existing queries (simple to complicated).
+2. Analyzing queries and finetuning as required with the help of DBAs.
+3. Analyzing and modifying stored procedures, functions and packages.
+4. Executing procedures, functions & queries using JDBC, JPA and Linux shell scripts.
+5. Analyzing data from DB for tier 2 support issues.
+-------------------------------------
+Are you a quick learner
+I think I am. 
+
+I was asked to work on a POC for the client. Develop a microservices based app using open source technologies with a team of 2 more team members.
+
+And we did finish 2 functions from the main site (involving CRUD operations with UI) in 1 and half month. In that process, we learned using MicroServices based architecture, Spring Boot, REST Web Service, AngularJS, Bootstrap, HTML5, CSS3 and JSON. We had a working site ready for the demo and Client was very happy with that work.
+-------------------------------------
+What is type erasure
+Generics were introduced to the Java language to provide tighter type checks at compile time and to support generic programming. To implement generics, the Java compiler applies type erasure to:
+
+- Replace all type parameters in generic types with their bounds or Object if the type parameters are unbounded. The produced bytecode, therefore, contains only ordinary classes, interfaces, and methods.
+- Insert type casts if necessary to preserve type safety.
+- Generate bridge methods to preserve polymorphism in extended generic types.
+
+Type erasure ensures that no new classes are created for parameterized types; consequently, generics incur no runtime overhead.
+-------------------------------------
+Understanding hashcode & equals method:
+When it comes to working with collections, we should override the equals() and hashCode() methods properly in the classes of the elements being added to the collections. Otherwise we will get unexpected behaviors or undesired results.
+
+The Object class (the super class of all classes in Java) defines two methods equals() and hashCode().
+
+The equals()method is designed to compare two objects semantically (by comparing the data members of the class), whereas the == operator compares two objects technically (by comparing their references i.e. memory addresses).
+
+The implementation of equals()method in the Object class compares references of two objects. That means we should override it in our classes for semantic comparison - like these JDK classes override equals method: String, Date, Integer, Double etc.
+
+Ex: the List interface provides the contains(Object) method which can be used for checking if the specified object exists in the list. Behind the scene, the list invokes the equals()method on the search object to compare it with other objects in the collection.
+
+The hashCode()method returns an integer value which is used to distribute elements in buckets of a hashtable-based collection.
+
+The default implementation of hashCode() in the Object class returns an integer number which is the memory address of the object. We should override it in our own classes. Most classes in the JDK override hashCode()method for having their own version/implementation: String, Date, Integer, Double, etc. 
+
+As hashtable-based collection locates an element by invoking its hashCode() and equals() methods, so we must obey this contract (rules/) with regard to the way we override these methods:
+1. When the equals() method is overridden, the hashCode() method must be overridden as well.
+2. If two objects are equal, their hash codes must be equal as well.
+3. If two objects are not equal, there’s no constraint on their hash codes (their hash codes can be equal or not).
+4. If two objects have identical hash codes, there’s no constraint on their equality (they can be equal or not).
+5. If two objects have different hash codes, they must not be equal.
+
+If we violate these rules, the collections will behave unexpectedly such as the objects cannot be found, or wrong objects are returned instead of the correct ones.
+-------------------------------------
+What project planning work did you do?
+
+This one relates to the Project Mgmt related activities which are not related to the development. We had a quality professional team (QSG) allocated for auditing project mgmt related artifacts. I was working with other leads to prepare docs/metrics for auditing.
+
+Docs like - PMR, Project Plan, Dashboard ppt (have project app details, technologies, work items, issues/risk mgmt, learnings etc.), SLA violation report (for the apps with Prod Support) and other quality indicator docs (with metrics like app availability, failure rate, defect density etc.).
+
+PMR includes Monthly/Quarterly updates, Financial info (billing), Risk Mgmt, Delivery Metrics (Development, Supprot, Testing), Defect Prevention Activities, Continutity Plan review, SQA Metrics, CSAT/PSAT Metrics, ValueAdd, Learnings, App-wise Work Progress, SLA Details etc.
+
+Defect Prevention Activities include analysing defects and specifying plan on how to correct them going ahead. Corrective action examples can be - peer review, checklist modification etc.
+
+Following activities are carried out during DP 
+•	Collect Defect Data along with Class and Sub-Class – Defects will be maintained in Spectrum/TIPS
+•	Identify 20% of the classes causing 80% of the defects using Pareto analysis
+•	The root causes for defect class / sub class.
+•	Decide on the action plan to eliminate the root causes
+•	Track the status of the implementation of action proposal
+•	Track the percentage (%) reduction in identified defect areas.
+
+Project Plan includes project overview, stakeholders/client info, org chart, h/w - s/w environment, tools used, escalation plan, resource plan, risk mgmt, project tracking, defect mgmt, CM, Continutity plan, Operational Process and SQA Plan.
+-------------------------------------
+Project Planning Overview:
+Communication plan: whom to inform & the frequency, which medium. Periodic Communication/Reporting to project stakeholders (sponsors). Report Progress.
+
+PM - like director of movie. Should distribute media.
+
+Scope Mgmt Plan: one should have process in place to manage scope change effectively. No one can anticipate all the contingencies. Hence need to incorporate scope change.
+
+Have provision for: 
+ - Approval of plans
+ - Gap Analysis should be done.
+ - Work Breakdown Structure (WBS)
+	The WBS is a breakdown/ decomposition of project work into distinct work items at higher level. These work items are aligned with the project objective and can help the project team to create expected deliverables.
+ - Budget & Resource assignment (Estimation)
+ - Identify critical Path.
+
+Risk in projects is the likelihood of the project's failure. During the project planning phase, risk must be analysed and a plan must be constructed to deal with risks in the event that they become actualized. 
+
+Careful & detailed planning help us to reduces risk and in turn uncertainty in any given project. In meticulously planned project, project planner attempts to make a provision for potential occurrences of uncertainties in advance.
+
+Project Scope Planning:
+Any project is expected to provide its stakeholders with certain outcome, which is commonly termed as project deliverables. These project deliverables depends on the scope of the project. 
+
+More detailing & precision during project planning definitely help the team organize their work efficiently & deliver the project more effectively. Without a project scope, project execution can go haywire. 
+
+Project Deliverables
+To define project scope, one needs to refer project requirements. The project planner needs to list down project deliverable items unambiguously stating whether they are ‘In Scope’ or ‘Not in Scope’. So, project scope is about outlining the project deliverables. Based on project scope, project planner(s)
+create(s) work break down structure (WBS). 
+-----------------------------
+What work have you done for DevOps?
+I used tools like Jenkins to faciliate implementation of DevOps practices in the team. 
+
+With Jenkins, we created jenkins job to implement CI, CT & CD for different apps under our Project. I personally have created the first such job for the team to follow guidelines of. High level steps involved for CI are:
+
+> Select “Build a free-style software project".
+> Source Code Management section - configure SVN properties
+> Build Triggers section - choose Build Periodically 
+> Build section, click “Add build step” and select “Invoke Maven 3” (You may require configuring Maven 3 on Jenkins instance if one is already not configured - Jenkins > Manage Jenkins > Global Tool Configuration > Maven Installations > Add Maven)
+mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true -Pcoverage-per-test
+-P implies profile added in maven pom file.
+> Build section, click “Add build step” button and select “Invoke Standalone Sonar Analysis” (You may require installing SonarQube Scanner if one is not already installed - Jenkins > Manage Jenkins > Configure System > Add SonarQube).
+> Verify Weblogic Deployer Plugin is installed on Jenkins instance. If not, get it from https://wiki.jenkins-ci.org/display/JENKINS/WebLogic+Deployer+Plugin
+> Configure Weblogic Deployer Plugin on Jenkins > Manage Jenkins > Configure System. In case weblogic server is not installed on Jenkins instance, generate the wlfullclient.jar and add it on weblogic library path. Provide xml file path containing deployments targets.
+NOTE: You can add jar and config file to SVN code first and then run partially the build job to get the code to the Jenkins job workspace.
+> Add post-build action “Deploy the artifact to any Weblogic environments”
+> Observe “WebLogic Deployments” log on build history.
+-----------------------------
+What is DevOps?
+DevOps is a culture which promotes collaboration between Development and Operations Team to deploy code to production faster in an automated & repeatable way. The word 'DevOps' is a combination of two words 'development' and 'operations.'
+
+DevOps helps to increases an organization's speed to deliver applications and services. It allows organizations to serve their customers better and compete more strongly in the market.
+
+In simple words, DevOps can be defined as an alignment of development and IT operations with better communication and collaboration.
+
+Why is DevOps is Needed?
+- Before DevOps, the development and operation team worked in complete isolation.
+- Testing and Deployment were isolated activities done after design-build. Hence they consumed more time than actual build cycles.
+- Without using DevOps, team members are spending a large amount of their time in testing, deploying, and designing instead of building the project.
+- Manual code deployment leads to human errors in production
+- Coding & operation teams have their separate timelines and are not in synch causing further delays.
+
+There is a demand to increase the rate of software delivery by business stakeholders.
+-----------------------------
+When to adopt DevOps?
+
+DevOps should be used for large distributed applications such as eCommerce sites or applications hosted on a cloud platform.
+
+When not to adopt DevOps?
+
+It should not be used in a mission-critical application like bank, power and other sensitive data sites. Such applications need strict access controls on the production environment, a detailed change management policy, access control policy to the data centers.
+-----------------------------
+How is DevOps different from Agile? DevOps Vs Agile?
+Stakeholders and communication chain a typical IT process:
+ - Customer + SW Requirement
+ - Developer + Tester
+ - IT Infra + Operations
+
+Agile addresses gaps in Customer and Developer communications. DevOps addresses gaps in Developer and IT Operations communications.
+
+Agile: Focuses more on functional and non-functional readiness.
+DevOps: focuses operational and business readiness.
+------------------------------
+DevOps Principles
+Here, are six principles which are essential when adopting DevOps:
+
+1. Customer-Centric Action: DevOps team must take customer-centric action for that they should constantly invest in products and services.
+
+2. End-To-End Responsibility: The DevOps team need to provide performance support until they become end-of-life. This enhances the level of responsibility and the quality of the products engineered.
+
+3. Continuous Improvement: DevOps culture focuses on continuous improvement to minimize waste. It continuously speeds up the improvement of product or services offered.
+
+4. Automate everything: Automation is a vital principle of DevOps process. This is not only for the software development but also for the entire infrastructure landscape.
+
+5. Work as one team: In the DevOps culture role of the designer, developer, and tester are already defined. All they needed to do is work as one team with complete collaboration.
+
+6. Monitor and test everything: It is very important for DevOps team to have a robust monitoring and testing procedures.
+------------------------------
+Why change in company
+I have been working with TechM for long time. I had been worked for the major clients of TechM. Now, I want to experience work culture of other company. With that I think I can improve myself. Working with different groups, clients & companies will certainly enrich my work experience - different problems to face, variety of new challenges, change in work dynamics etc.
+--------------------------------------
+Difference Between Hibernate get() and load() Methods ?
+Few Points About Hibernate get() & load()
+- Both are from Session interface, and we will call them as session.get() & session.load()
+- Both will be use for retrieving the object (a row) from the database
+
+The load() method is older; get() was added to Hibernate’s API later.
+
+load():
+When you call session.load() method, it will always return a “proxy” object.
+
+Proxy means, hibernate will prepare some fake object with given identifier value in the memory without hitting the database, for example if we call session.load(Student.class,new Integer(107));  > hibernate will create one fake Student object [row] in the memory with id 107, but remaining properties of Student class will not even be initialized.
+
+It will hit the database only when we try to retrieve the other properties of Student object i mean stdName, stdCountry. If object [row] not found in the database it will throws ObjectNotFoundException.
+
+If load() can’t find the object in the cache or database, an exception is thrown. The load() method never returns null.
+
+Since it returns a proxy object of requested entity, we can use it for lazy initialization purpose where we need only a reference of an object and no other its properties. It actually saves DB hits.
+
+From performance point of view, load() method is recommended when compared to get() method.
+
+get():
+When you call session.get() method, it will hit the database immediately and returns the original object (with total info). If the row is not available in the database, it returns null. Any subsequent calls on the same session will return the object from the cache only.
+
+We should go with this method when we want to make sure the required object i.e. data is present in the DB.
+--------------------------------------
+which version of hibernate you have used?
+I have used Hibernate 3 in my previous assignments. But for programming practice, I've used the latest i.e. Hibernate 5 (Java 8 and JPA 2.1 Compatible).
+JPA 1.0: Hibernate 3.2+
+JPA 2.0: Hibernate 3.5+
+JPA 2.1: Hibernate 4.3+
+--------------------------------------
+Differnce update() and merge() in Hibernate?
+
+We call update() and merge() methods to transfer an object from detached state to persistent state.
+
+A detached state object can be made persist by reattaching to a session. If previous session is closed then we can open a new session and we can reattach to a new session. To reattach we can use update() or merge() methods. Both are doing the same functionality, but there are few differences internally.
+
+When we call update() method on session, if that session doesn’t contains same object (provided in update())  in cache then update() method successfully executed and the object been converted detached state to persistent state. If already a session cache containing the same object then the update() method throws an exception called NonUniqueObjectException.
+
+If we call merge() method, then it verifies whether the same object is existed in the cache or not. If the object is existed in the cache then changes are copied in to the cache. other wise it will load the values to cache. Hence it doesn’t throw any exception.
+--------------------------------------
+Which action classes are used in struts 1
+Apache Struts is an open source framework used to develop JSP or servlet based web application. Struts extend the Java servlet API and are based on the model view controller or MVC design pattern.
+
+Action Class in Struts framework defines the business logic.
+
+- Action class should extend org.apache.struts.action.Action class.
+- Should override the execute method of the Action class.
+- The org.apache.struts.action.ActionServlet selects the Action class for incoming http request defined under the action mapping tag in the struts-config.xml.
+- These classes are used to invoke the classes at the business layer or data access layer to get the data from the bean and store the processed data and return the result or error depending upon the situation.
+- Developer has to take care of the multithreaded impact as the action classes are not thread safe.
+
+Struts has five different action classes of which the most commonly used are:
+ - Action
+ - DispatchAction
+
+Others are IncludeAction, ForwardAction, LookupDispatchAction, and SwitchAction
+ 
+Classes extending the org.apache.struts.actions.DispatchAction class have their own action forward methods. They can have multiple action forward methods thus becoming useful in case of multiple optional flows.
+
+<action path = "/menuAction" type = "com.home.upload.action.MenuAction" name = "MenuForm" input = "/menu.jsp" parameter = "method" > 
+	<forward name = "upload" path = "/fileUpload.jsp" /> 
+	<forward name = "listFiles" path ="/listUploadedFiles.jsp" /> 
+</action>
+--------------------------------------
+Which action classes are used in struts 2?
+
+Actions are the core of the Struts2 framework, as they are for any MVC (Model View Controller) framework. Each URL is mapped to a specific action, which provides the processing logic which is necessary to service the request from the user.
+
+Serves 2 imp purposes:
+1. The action plays an important role in the transfer of data from the request through to the view, whether its a JSP or other type of result.
+2. The action must assist the framework in determining which result should render the view that will be returned in the response to the request.
+
+In struts 2, action class is POJO (Plain Old Java Object). POJO means you are not forced to implement any interface or extend any class. Generally, execute method should be specified that represents the business logic.
+
+A convenient approach is to implement the com.opensymphony.xwork2.Action interface that defines 5 constants and one execute method. Action interface contains only one method execute that should be implemented overridden by the action class.
+
+The only requirement for actions in Struts2 is that there must be one noargument method that returns either a String or Result object and must be a POJO. If the no-argument method is not specified, the default behavior is to use the execute() method.
+
+Optionally you can extend the ActionSupport class which implements six interfaces including Action interface. It is a convenient class that implements many interfaces such as Action, Validateable, ValidationAware, TextProvider, LocaleProvider and Serializable . So it is mostly used instead of Action.
+
+The Action interface is as follows −
+
+public interface Action {
+   public static final String SUCCESS = "success";
+   public static final String NONE = "none";
+   public static final String ERROR = "error";
+   public static final String INPUT = "input";
+   public static final String LOGIN = "login";
+   public String execute() throws Exception;
+}
+--------------------------------------
+Struts 2 Configuration File - extending struts-default package - what is the significance?
+
+The struts application contains two main configuration files struts.xml file and struts.properties file.
+
+The struts.properties file is used to override the default values of default.xml file provided by struts framework. So it is not mandatory.
+
+struts.xml
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE struts PUBLIC "-//Apache Software Foundation//DTD Struts  
+Configuration 2.1//EN" "http://struts.apache.org/dtds/struts-2.1.dtd">  
+<struts>  
+	<package name="default" extends="struts-default">  
+  		<action name="product" class="com.javatpoint.Product">  
+		<result name="success">welcome.jsp</result>  
+		</action>  
+  	</package>  
+</struts>      
+
+We can easily divide our struts application into sub modules. The package element specifies a module. You can have one or more packages in the struts.xml file.
+
+Attributes of package element:
+	- name name is must for defining any package. 
+	- namespace It is an optional attribute of package. If namespace is not present, / is assumed as the default namespace. In such case, to invoke the action class, you need this URI: /actionName.action  
+	If you specify any namespace, you need this URI: /namespacename/actionName.action
+
+extends The package element mostly extends the struts-default package where interceptors and result types are defined. If you extend struts-default, all the actions of this package can use the interceptors and result-types defined in the struts-default.xml file.
+
+Action element: The action is the subelement of package and represents an action.
+
+Attributes of action element: 
+	- name name is must for defining any action.
+	- class class is the optional attribute of action. If you omit the class attribute, ActionSupport will be considered as the default action. A simple action may be as:
+		<action name="product">  
+	- method It is an optional attribute. By default, execute method will be considered as the method of action class. So this code:
+		<action name="product" class="com.javatpoint.Product">  
+		will be same as:
+		<action name="product" class="com.javatpoint.Product" method="execute">  
+	If you want to invoke a particular method of the action, you need to use method attribute.
+
+Result element: It is the sub element of action that specifies where to forward the request for this action.
+
+Attributes of result element:
+	- name is the optional attribute. If you omit the name attribute, success is assumed as the default result name.
+	- type is the optional attribute. If you omit the type attribute, dispatcher is assumed as the default result type.
+	
+Other elements:
+There are many other elements also such as global-exception-mappings, global-results, include etc. 
+--------------------------------------
+Explain MVC in struts
+
+Model - Action class (pojo with execute method), ActionForm class.
+View - JSP (result)
+Controller - ActionServlet
+
+The model contains the business logic and interact with the persistance storage to store, retrive and manipulate data.
+
+The view is responsible for dispalying the results back to the user. In Struts the view layer is implemented using JSP.
+
+The controller handles all the request from the user and selects the appropriate view to return. In Sruts the controller's job is done by the ActionServlet. 
+
+The following events happen when the Client browser issues an HTTP request.
+
+The ActionServlet receives the request.
+	- The struts-config.xml file contains the details regarding the Actions, ActionForms, ActionMappings and ActionForwards.
+	- During the startup the ActionServelet reads the struts-config.xml file and creates a database of configuration objects. Later while processing the request the ActionServlet makes decision by refering to this object.
+	
+When the ActionServlet receives the request it does the following tasks.
+	- Bundles all the request values into a JavaBean class which extends Struts ActionForm class.
+	- Decides which action class to invoke to process the request.
+	- Validate the data entered by the user.
+	- The action class process the request with the help of the model component. The model interacts with the database and process the request.
+	- After completing the request processing the Action class returns an ActionForward to the controller.
+	- Based on the ActionForward the controller will invoke the appropriate view.
+	
+The HTTP response is rendered back to the user by the view component.
+--------------------------------------
+Programming models - Model 1 vs Model 2(MVC)
+
+Model 1 Architecture:
+Servlet technology doesn't create process, rather it creates thread to handle request. The advantage of creating thread over process is that it doesn't allocate separate memory area. Problem in Servlet technology Servlet needs to recompile if any designing code is modified. It doesn't provide separation of concern. Presentation and Business logic are mixed up.
+
+JSP overcomes almost all the problems of Servlet. It provides better separation of concern, now presentation and business logic can be easily separated. You don't need to redeploy the application if JSP page is modified. JSP provides support to develop web application using JavaBean, custom tags and JSTL so that we can put the business logic separate from our JSP that will be easier to test and debug.
+
+- Browser sends request for the JSP page
+- JSP accesses Java Bean and invokes business logic
+- Java Bean connects to the database and get/save data
+- Response is sent to the browser which is generated by JSP
+
++ Easy and Quick to develop web application
+- Navigation control is decentralized - If JSP page name is changed that is referred by other pages, we need to change it in all the pages that leads to the maintenance problem.
+- Time consuming You need to spend more time to develop custom tags in JSP (this is to avoid scriptlet).
+- Hard to extend It is better for small applications but not for large applications.
+
+Model 2 (MVC) Architecture:
+Model 2 is based on the MVC (Model View Controller) design pattern. Model The model represents the state (data) and business logic of the application. View The view module is responsible to display data i.e. it represents the presentation. Controller The controller module acts as an interface between view and model. It intercepts all the requests i.e. receives input and commands to Model / View to change accordingly.
+
++ Navigation control is centralized Now only controller contains the logic to determine the next page.
++ Easy to maintain, extend, test
++ Better separation of concerns
+- We need to write the controller code self. If we change the controller code, we need to recompile the class and redeploy the application.
+
+The Struts framework provides the configurable MVC support.
+--------------------------------------
+Polymorphism example
+Polymorphism in java is a concept by which we can perform a single action by different ways.
+
+There are two types of polymorphism in java: compile time polymorphism and runtime polymorphism. We can perform polymorphism in java by method overloading and method overriding.
+
+Runtime polymorphism or Dynamic Method Dispatch is a process in which a call to an overridden method is resolved at runtime rather than compile-time.
+
+In this process, an overridden method is called through the reference variable of a superclass. The determination of the method to be called is based on the object being referred to by the reference variable.
+
+Upcasting - When reference variable of Parent class refers to the object of Child class, it is known as upcasting. 
+	class A{}  
+	class B extends A{}  
+	A a=new B();//upcasting  
+
+Reverse process is downcasting. 
+
+Dog d=(Dog)new Animal();  //Compiles successfully but ClassCastException is thrown at runtime  
+
+static void method(Animal a) {  
+    if(a instanceof Dog3){  
+       Dog3 d=(Dog3)a;//downcasting  
+       System.out.println("ok downcasting performed");  
+    }
+}	
+	
+static void method(Animal a) {  
+       Dog4 d=(Dog4)a;//downcasting  
+       System.out.println("ok downcasting performed");  
+}  
+	
+Ex of runtime polymorphism: 
+	Bank (Parent); SBI, ICICI, AXIS (Children) - float getRateOfInterest() is the overridden method.
+	Shape(Parent); Circle, Triangle, Rectangle (Children); void draw() is the overridden method.
+	Animal (Parent); Cat, Lion, Dog (Children) void eat() is the overridden method.
+
+Why we cannot override static method? 
+because static method is bound with class whereas instance method is bound with object. Main method also can't be overriden as it is also a static method.
+
+Method Overloading: class has multiple methods having same name but different in parameters.
+
+There are two ways to overload the method in java: By changing number of arguments, By changing the data type of the arguments.
+
+In java, Method Overloading is not possible by changing the return type of the method only - java compiler renders compiler time error if you declare the same method having same parameters.
+
+You can have any number of main methods in a class by method overloading. But JVM calls main() method which receives string array as arguments only.	
+--------------------------------------
