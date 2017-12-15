@@ -1,0 +1,1421 @@
+﻿One app job has started failing causing issues for whole app. What will be your approach?
+How will you start on design for a requirement?
+
+How will you accomodate dynamic column feed?
+Ex: 
+Consider an address book - there's a host of things that you might want to add. With new social networks popping up every day, users might want to add a new field for a Bunglr id to their contacts.
+
+Option - Serialized LOB - Saves a complex objects by serializing them into a single large object (LOB), which it stores in a database field.
+
+Usually the best option is to use a Serialized LOB, essentially creating a large text column into which you store the user-defined fields as a JSON or XML document. Many databases these days offer pretty nice support for this approach, including support for indexing and querying based on the data structure within the LOB. However such support, if available, is usually more awkward than using fields.
+
+Alternatively, talk to SME and come out with the max no of columns that can be there in the feed. And design a table to accomodate that many columns.
+
+How to ensure atomicity in MicroServices based app?
+Most of the monolithic applications which are using a relational database may use ACID transactions, which provide some important attributes:
+
+Atomicity – Changes are made atomically. All or nothing - If part fails, the entire transaction fails.
+Consistency – The state of the database is always consistent. i.e. valid even after transaction w.r.t. DB rules (key, uniqueness etc.)
+Isolation – Even though transactions are executed concurrently (without interferring eachother), it appears they are executed serially.
+Durable – Once a transaction is committed it cannot be undone. Commited data remains so indefinitely - even after power loss or crash.
+
+Unfortunately, applying the ACID properties for data access becomes much more complex when we move to microservices architecture.
+
+Taking a concrete example of online "credit card bill payment" that we all familiar with, bill payment requires orchestration of two operations, "debit savings bank account" and "credit to credit card account" which are handled by different domains. In this case, "credit card bill payment" is a composite operation across two services.  The debit and credit operations should happen together or not happen at all. So that leads to the classic architecture challenge, how do we ensure transaction integrity of operations that are performed across services that are distributed.
+
+A more viable strategy is to see the "credit card bill payment" execute the two operations independently. If the composite service detects a failure in credit operation after executing debit operation, it will have to reverse the debit operation by posting an equivalent credit entry. 
+
+Another popular resilient approach is to make composite "credit card bill payment" operation asynchronous. Composite service creates a message with two request commands (a debit and a credit instruction). If there is a failure, the message is sent to an error queue, where the composite service can look at state and error status and compensate if required.
+
+Distributed Transaction – Event Driven Architecture & Two Phase Commit:
+
+In this case, the column completed indicates whether transaction should be committed, ie. Microservice 1 debits the amount and marks as not completed, since the amount is not yet credited in the targeted bank account. Then Microservice 1 invokes Microservice 2 to complete the transaction. When Microservice 2 completes its work by crediting the amount in the targeted bank account, it notifies Microservice 1 (either synchronously or asynchronously (Event State Triggering)). After receiving notification, Microservice 1 marks the fund transfer as completed.
+
+Incase Microservice 2 fails to complete its work by crediting the amount in the targeted bank account, it notifies Microservice 1 (either synchronously or asynchronously (Event State Triggering)). After receiving notification, Microservice 1 marks the fund transfer as not completed, by revoking (deleting the record) the transaction.
+
+To make these services self-contained and aligned with the microservices deployment paradigm, the data is also self-contained within the module, loosely coupled from other APIs. Encapsulating the data allows the services to grow independently, but a major problem is dealing with keeping data consistent across the services.
+
+It gets even more complicated with the idea that these loosely-coupled data repositories might not necessarily all be relational stores and could be a polyglot with a mix of relational and non-relational data stores. The idea of having an immediately consistent state is difficult. What you should look forward to, however, is an architecture that promotes eventual consistency.
+
+An event driven architecture can support a BASE (basic availability, soft-state, and eventual consistency) transaction model. This is a great technique to solve the problem of handling transactions across services and customers can be convinced to negotiate the contract towards a BASE model since usually transactional consistency across functional boundaries is mostly about frequent change of states, and consistency rules can be relaxed to let the final state be eventually visible to the consumers.
+
+What's your take on NoSQL DBs?
+NoSQL databases are highly scalable and flexible database management systems which allow you to store and process unstructured as well as semi-structured data which is not possible through RDBMS tools. Since relational databases were developed many years ago when there was no internet and digitization was meant to be deployed on single big server. However with the advent of internet and digital economy this technology fell short in fulfilling the dynamic requirements and that is when NoSQL systems came into limelight.
+
+A NoSQL (originally referring to "non SQL" or "non relational") database provides a mechanism for storage and retrieval of data that is modeled in means other than the tabular relations used in relational databases. NoSQL databases are increasingly used in big data and real-time web applications. NoSQL systems are also sometimes called "Not only SQL" to emphasize that they may support SQL-like query languages.
+
+Relational databases rely on tables, columns, rows, or schemas to organize and retrieve data. In contrast, NoSQL databases do not rely on these structures and use more flexible data models. 
+
+As RDBMS have increasingly failed to meet the performance, scalability, and flexibility needs that next-generation, data-intensive applications requirements; NoSQL databases have been adopted by mainstream enterprises. NoSQL is particularly useful for storing unstructured data, which is growing far more rapidly than structured data and does not fit the relational schemas of RDBMS. Common types of unstructured data include: user and session data; chat, messaging, and log data; time series data such as IoT and device data; and large objects such as video and images.
+
+NoSQL encompasses a wide variety of different database technologies that were developed in response to the demands presented in building modern applications:
+	- Developers are working with applications that create massive volumes of new, rapidly changing data types — structured, semi-structured, unstructured and polymorphic data.
+	- Long gone is the 12-18 months waterfall development cycle. Now small teams work in agile sprints, iterating quickly and pushing code every week or two, some even multiple times every day.
+	- Applications that once served a finite audience are now delivered as services that must be always-on, accessible from many different devices and scaled globally to millions of users.
+	- Organizations are now turning to scale-out architectures using open source software, commodity servers and cloud computing instead of large monolithic servers and storage infrastructure.
+
+Relational databases were not designed to cope with the scale and agility challenges that face modern applications, nor were they built to take advantage of the commodity storage and processing power available today.
+
+Types:
+	Key-value data stores: Key-value NoSQL databases emphasize simplicity and are very useful in accelerating an application to support high-speed read and write processing of non-transactional data. Stored values can be any type of binary object (text, video, JSON document, etc.) and are accessed via a key. The application has complete control over what is stored in the value, making this the most flexible NoSQL model. Data is partitioned and replicated across a cluster to get scalability and availability. For this reason, key value stores often do not support transactions. However, they are highly effective at scaling applications that deal with high-velocity, non-transactional data. Ex. Cassandra, Azure, etc.
+	
+	Document stores: Document databases typically store self-describing JSON, XML, and BSON documents. They are similar to key-value stores, but in this case, a value is a single document that stores all data related to a specific key. Popular fields in the document can be indexed to provide fast retrieval without knowing the key. Each document can have the same or a different structure. Ex. MongoDB, CouchDB etc.
+	
+	Wide-column stores: Wide-column NoSQL databases (like HBase, BigTable, HyperTable etc.) store data in tables with rows and columns similar to RDBMS, but names and formats of columns can vary from row to row across the table. Wide-column databases group columns of related data together. A query can retrieve related data in a single operation because only the columns associated with the query are retrieved. In an RDBMS, the data would be in different rows stored in different places on disk, requiring multiple disk operations for retrieval.
+	
+	Graph stores: A graph database uses graph structures to store, map, and query relationships. They provide index-free adjacency, so that adjacent elements are linked together without using an index. Graph stores include Neo4J, Polyglot and Giraph.
+
+Multi-modal databases leverage some combination of the four types described above and therefore can support a wider range of applications.
+
+Many NoSQL stores compromise consistency (in the sense of the CAP theorem) in favor of availability, partition tolerance, and speed. Barriers to the greater adoption of NoSQL stores include the use of low-level query languages (instead of SQL, for instance the lack of ability to perform ad-hoc joins across tables), lack of standardized interfaces, and huge previous investments in existing relational databases.
+
+Instead, most NoSQL databases offer a concept of "eventual consistency" in which database changes are propagated to all nodes "eventually" (typically within milliseconds) so queries for data might not return updated data immediately or might result in reading data that is not accurate, a problem known as stale reads.
+
+Additionally, some NoSQL systems may exhibit lost writes and other forms of data loss. Fortunately, some NoSQL systems provide concepts such as write-ahead logging to avoid data loss. For distributed transaction processing across multiple databases, data consistency is an even bigger challenge that is difficult for both NoSQL and relational databases. 
+
+NoSQL databases offer enterprises important advantages over traditional RDBMS, including:
+	- Scalability: NoSQL databases use a horizontal scale-out methodology that makes it easy to add or reduce capacity quickly and non-disruptively with commodity hardware. This eliminates the tremendous cost and complexity of manual sharding that is necessary when attempting to scale RDBMS.
+	- Performance: By simply adding commodity resources, enterprises can increase performance with NoSQL databases. This enables organizations to continue to deliver reliably fast user experiences with a predictable return on investment for adding resources—again, without the overhead associated with manual sharding.
+	- High Availability: NoSQL databases are generally designed to ensure high availability and avoid the complexity that comes with a typical RDBMS architecture that relies on primary and secondary nodes. Some “distributed” NoSQL databases use a masterless architecture that automatically distributes data equally among multiple resources so that the application remains available for both read and write operations even when one node fails.
+	- Global Availability: By automatically replicating data across multiple servers, data centers, or cloud resources, distributed NoSQL databases can minimize latency and ensure a consistent application experience wherever users are located. An added benefit is a significantly reduced database management burden from manual RDBMS configuration, freeing operations teams to focus on other business priorities.
+	- Flexible Data Modeling: NoSQL offers the ability to implement flexible and fluid data models. Application developers can leverage the data types and query options that are the most natural fit to the specific application use case rather than those that fit the database schema. The result is a simpler interaction between the application and the database and faster, more agile development.
+
+NoSQL databases, usually support auto-sharding, meaning that they natively and automatically spread data across an arbitrary number of servers, without requiring the application to even be aware of the composition of the server pool. Data and query load are automatically balanced across servers, and when a server goes down, it can be quickly and transparently replaced with no application disruption.
+
+Most NoSQL databases also support automatic database replication to maintain availability in the event of outages or planned maintenance events. More sophisticated NoSQL databases are fully self-healing, offering automated failover and recovery, as well as the ability to distribute the database across multiple geographic regions to withstand regional failures and enable data localization. 
+
+Many NoSQL database technologies have excellent integrated caching capabilities, keeping frequently-used data in system memory as much as possible and removing the need for a separate caching layer. 
+
+
+				SQL Databases										NOSQL Databases
+Types			One type (SQL database) with minor variations		Many different types including key-value stores, document databases, wide-column stores, 
+																	and graph 	databases
+Development 	History	Developed in 1970s to deal with first 		Developed in late 2000s to deal with limitations of SQL databases, especially scalability,
+				wave of data storage applications	  				multi-structured data, geo-distribution and agile development sprints.
+Examples		MySQL, Postgres, Microsoft SQL Server, Oracle 		MongoDB, Cassandra, HBase, Neo4j
+Data Storage Model
+Individual records (e.g., 'employees') are stored as rows in tables, with each column storing a specific piece of data about that record (e.g., 'manager,' 'date hired,' etc.), much like a spreadsheet. Related data is stored in separate tables, and then joined together when more complex queries are executed. For example, 'offices' might be stored in one table, and 'employees' in another. When a user wants to find the work address of an employee, the database engine joins the 'employee' and 'office' tables together to get all the information necessary.
+
+Varies based on database type. For example, key-value stores function similarly to SQL databases, but have only two columns ('key' and 'value'), with more complex information sometimes stored as BLOBs within the 'value' columns. Document databases do away with the table-and-row model altogether, storing all relevant data together in single 'document' in JSON, XML, or another format, which can nest values hierarchically.
+
+Schemas
+Structure and data types are fixed in advance. To store information about a new data item, the entire database must be altered, during which time the database must be taken offline.	
+
+Typically dynamic, with some enforcing data validation rules. Applications can add new fields on the fly, and unlike SQL table rows, dissimilar data can be stored together as necessary. For some databases (e.g., wide-column stores), it is somewhat more challenging to add new fields dynamically.
+
+Scaling
+Vertically, meaning a single server must be made increasingly powerful in order to deal with increased demand. It is possible to spread SQL databases over many servers, but significant additional engineering is generally required, and core relational features such as JOINs, referential integrity and transactions are typically lost.	
+
+Horizontally, meaning that to add capacity, a database administrator can simply add more commodity servers or cloud instances. The database automatically spreads data across servers as necessary.
+
+Development Model	
+Mix of open-source (e.g., Postgres, MySQL) and closed source (e.g., Oracle Database)	
+
+Open-source
+
+Supports Transactions	
+Yes, updates can be configured to complete entirely or not at all	
+
+In certain circumstances and at certain levels (e.g., document level vs. database level)
+
+Data Manipulation	
+Specific language using Select, Insert, and Update statements, e.g. SELECT fields FROM table WHERE…	
+
+Through object-oriented APIs
+
+Consistency
+Can be configured for strong consistency	
+
+Depends on product. Some provide strong consistency (e.g., MongoDB, with tunable consistency for reads) whereas others offer eventual consistency (e.g., Cassandra).
+
+REASONS TO USE A SQL DATABASE
+
+When it comes to database technology, there’s no one-size-fits-all solution. That’s why many businesses rely on both relational and nonrelational databases for different tasks. Even as NoSQL databases gain popularity for their speed and scalability, there are still situations where a highly structured SQL database may be preferable
+
+1. You need to ensure ACID compliancy (Atomicity, Consistency, Isolation, Durability). ACID compliancy reduces anomalies and protects the integrity of your database by prescribing exactly how transactions interact with the database. For many e-commerce and financial applications, an ACID-compliant database remains the preferred option.
+2. Your data is structured and unchanging. i.e. when your business is not experiencing massive growth that would require more servers and you’re only working with data that’s consistent.
+
+REASONS TO USE A NOSQL DATABASE
+
+Big data is the real NoSQL motivator here, doing things that traditional relational databases cannot. It’s driving the popularity of NoSQL databases like MongoDB, CouchDB, Cassandra, and HBase.
+
+1. Storing large volumes of data that often have little to no structure - A NoSQL database sets no limits on the types of data you can store together, and allows you to add different new types as your needs change. With document-based databases, you can store data in one place without having to define what “types” of data those are in advance.
+2. Making the most of cloud computing and storage - Cloud-based storage is an excellent cost-saving solution, but requires data to be easily spread across multiple servers to scale up. Using commodity (affordable, smaller) hardware on-site or in the cloud saves you the hassle of additional software, and NoSQL databases like Cassandra are designed to be scaled across multiple data centers out of the box without a lot of headaches.
+3. Rapid development - If you’re developing within two-week Agile sprints, cranking out quick iterations, or needing to make frequent updates to the data structure without a lot of downtime between versions, a relational database will slow you down. NoSQL data doesn’t need to be prepped ahead of time.
+
+What's your take on AI, Robotics & Machine Learning?
+Machine Learning:
+Machine learning is a method of data analysis that automates analytical model building. It is a branch of artificial intelligence based on the idea that machines should be able to learn and adapt through experience.
+
+It was born from pattern recognition and the theory that computers can learn without being programmed to perform specific tasks. They learn from previous computations to produce reliable, repeatable decisions and results.
+
+The ability to automatically apply complex mathematical calculations to big data – over and over, faster and faster – is a recent development. Here are a few widely publicized examples of machine learning applications you may be familiar with:
+
+- The heavily hyped, self-driving Google car? The essence of machine learning.
+- Online recommendation offers such as those from Amazon and Netflix? Machine learning applications for everyday life.
+- Knowing what customers are saying about you on Twitter? Machine learning combined with linguistic rule creation.
+- Fraud detection? One of the more obvious, important uses in our world today.
+
+There is more data than ever + affordable processing power + inexpensive storage => models that deliver fast, accurate results.
+
+Who is using it?
+Financial Services
+Banks and other businesses in the financial industry use machine learning technology for two key purposes: to identify important insights in data, and prevent fraud. The insights can identify investment opportunities, or help investors know when to trade. Data mining can also identify clients with high-risk profiles, or use cybersurveillance to pinpoint warning signs of fraud.
+
+Government
+Government agencies such as public safety and utilities have a particular need for machine learning since they have multiple sources of data that can be mined for insights. Analyzing sensor data, for example, identifies ways to increase efficiency and save money. Machine learning can also help detect fraud and minimize identity theft.
+
+Health Care:
+Machine learning is a fast-growing trend in the health care industry, thanks to the advent of wearable devices and sensors that can use data to assess a patient's health in real time. The technology can also help medical experts analyze data to identify trends or red flags that may lead to improved diagnoses and treatment. 
+
+Marketing & Sales:
+Websites recommending items you might like based on previous purchases are using machine learning to analyze your buying history – and promote other items you'd be interested in. This ability to capture data, analyze it and use it to personalize a shopping experience (or implement a marketing campaign) is the future of retail.
+
+Oil & Gas:
+Finding new energy sources. Analyzing minerals in the ground. Predicting refinery sensor failure. Streamlining oil distribution to make it more efficient and cost-effective. The number of machine learning use cases for this industry is vast – and still expanding.
+
+Transportation
+Analyzing data to identify patterns and trends is key to the transportation industry, which relies on making routes more efficient and predicting potential problems to increase profitability. 
+
+Robotics Process Automation:
+RPA is at the forefront of human-computer technology and provides players in the all industries with a virtual workforce that is ruled based and is set up to connect with your company’s systems in the same way as your existing users. With robotics, you automate and build an automation platform for you front office, back office and support functions.
+
+Ex. Robotic process automation allow modern banks to meet these demands and achieve significant operational efficiency. It can automate a wide array of processes: like New account entry across systems, Account reconciliation, Report Generation, VAT Processing, Fraud detection, Account cleansing etc.
+
+In manufacturing fields, robots have already been taken place so well and eliminated human need to a large extent. Labor categories are most effected till now because of robots.
+
+There are many IT companies which were working from many years to develop a tools through which one would be able to automate vast range of repetitive clerical tasks just like a human. Now those tools are in mature stage. Few of those providers are below
+
+UI Path
+Blue Prism
+Automation Anywhere
+OpenSpan
+
+Above providers have been able to develop a very sophisticated tool, which can easily create a code to interact with existing software systems just by using simple wizards.
+
+Almost every type of computer-aided process that uses a set of protocols for its operations can be performed using RPA. Further with the advancements of the tools and techniques of robotics science, it is expected that during some point of time RPA will be able to perform all those operations that a human does today.
+
+The growth in the field of RPA is sure shot and thus will provide higher technological potentials towards significantly reducing the risk of inaccurate regulatory reporting’s along with improvised analytics and higher data accuracy.
+
+AI:
+Artificial intelligence (AI) is a branch of computer science. It involves developing computer programs to complete tasks which would otherwise require human intelligence. AI algorithms can tackle learning, perception, problem-solving, language-understanding and/or logical reasoning.
+AI is used in many ways within the modern world. For example, AI algorithms are used in Google searches, Amazon's recommendation engine and SatNav route finders. Most AI programs are not used to control robots.
+Even when AI is used to control robots, the AI algorithms are only part of the larger robotic system, which also includes sensors, actuators and non-AI programming.
+
+Often — but not always — AI involves some level of machine learning, where an algorithm is "trained" to respond to a particular input in a certain way by using known inputs and outputs.
+
+The key aspect that differentiates AI from more conventional programming is the word "intelligence." Non-AI programs simply carry out a defined sequence of instructions. AI programs mimic some level of human intelligence.
+
+Artificially intelligent robots are the bridge between robotics and AI. These are robots which are controlled by AI programs. Non-intelligent robots are quite limited in their functionality. AI algorithms are often necessary to allow the robot to perform more complex tasks.
+
+What's your take on Cloud?
+Cloud computing is Internet-based computing, whereby shared resources, software and information are provided to computers and other devices on demand, like the electricity grid.
+
+Cloud is a style of computing based on the Internet that allows customers to pay for exactly the resources and infrastructure they use.Its characteristics include lack of an up-front capital requirement, shared service delivery over the Internet and pay for use.
+
+Everyone who uses a web or Internet-based application from any prominent provider such as Microsoft or Google, such as Hotmail, Gmail, Google Docs and Dropbox is using Cloud Computing!!
+
+Cloud Computing refers to all the Internet-based services, applications and development. IBM defines Cloud Computing as ‘computing as a service over the Internet’ that allows storing of great volumes of data, sans the possibility of losing the same.Cloud Computing or ‘the cloud’ refers to pooling of technology resources for the delivery of centralized data storing and access services over the Internet.
+
+Cloud Computing is a significant aspect of the information technology that has made lives of people easier and simpler. We all enjoy the facility to upload documents, photos and videos to the Internet (‘the cloud’) and retrieve them anytime, anywhere at our convenience. Cloud Computing is mainly categorized into three services including, software as a service (SaaS), infrastructure as a service (IaaS) and platform as a service (PaaS). Key characteristics of Cloud Computing are on-demand network access, scalability, greater security, measured service and flexibility.
+
+A cloud allows users to access application, information, and data of all sorts on an online level rather than by use of actual hardware or devices. A company offering reliable cloud technology allows for computing to be done in a much more shared way, as a cloud provides a service rather than a product. Users get and share their information in a way that can allow them to access and give access to the whole world or any groups of people within their cloud.
+
+There are thousands of possibilities beginning to form as the future of cloud computing starts to really take off. For instance, vendors and service providers can get on board to develop new and different ways of selling their goods and services to the cloud users through the cloud technology. The main reason that the future of cloud computing will be as powerful and expansive as it portends to be is that cloud technology is extremely beneficial. For one thing, the extreme agility and accessibility of a cloud is far superior to the use of current technology. No matter where in the world someone happens to be, or what device they are using, they can access their cloud and continue to do their work or share their information. Not only that, but cloud technology is extremely cost effective, and a company could end up saving thousands by choosing this option. For the reliability a cloud offers, the security it provides, and the performance it boasts of, the cost of a cloud makes it an incredible option for individuals and corporations alike. 
+
+Cloud Computing is a fast emerging business standard. Enterprises find it beneficial in several ways. Cloud Computing simplifies accessibility, provides virtual storage space, addresses backup issues, it provides security against unauthorized access and loss of data. Key advantage is that users can pay only for the resources they have used on ‘the cloud’ and do away with the major investments for data storage, software licenses, servers and hardware.
+
+The industry is expected to grow tremendously, driven mainly by the services that allow users to backup their files including photos and music, while ensuring easy availability of files in cases of hard drive crash. 
+
+Organizations, both big and small have deployed the cloud technology in some suitable capacity. Enterprises need expert IT professionals to work around ‘the cloud’. The Cloud Computing industry requires professionals with adept training and knowledge in both technical and managerial fields. The demand for IT professionals continues to rise at an exponential rate as more and more enterprises adopt Cloud Computing.
+
+How to detect connection not closing when you have certain configurations?
+What GC settings would you configure?
+What solution has given you max satisfaction?
+Any dead code related improvement that you had done? What if Client doesn't buy it.. will you still do it?
+What failure have you faced in Project?
+How will you manange Delivery deadline miss?
+Give as Much Advance Notice as Possible
+It's much easier for the other party to plan around you if you say something like, "I'm just digging into the project, and it looks like the data collection is going to take a few days longer than I originally anticipated. Can I extend the deadline from next Friday to the following?" In fact, most people will be perfectly happy to extend a deadline when given a good reason. Well in advance.
+
+Explain Yourself—Briefly
+On that note, it's always professional to explain why you're going to be turning something in late. A good rule of thumb is to succinctly explain why things aren't going according to plan, without blaming anyone or going on and on about your sick dog, broken computer, or mounting to-do list.
+
+A simple outline of the facts ("unfortunately, I've run into some snags with the reporting software") is typically sufficient.
+Give an Option or a Bonus
+If you're really putting someone in a tough place by missing a deadline, think about what you could offer that would make up for the inconvenience. 
+If you're working with a client, you can offer to deliver an add-on to your product or service or a slight reduction in fee, that's bound to leave a positive impression and move on from your past mistakes.
+
+Show Professionalism and Appreciation
+A simple, "I really appreciate you making this exception. It won't happen again" goes a long way. Also, pick a new deadline and stick to it. 
+
+Instead of a vague, "Can I have an extension?" try, "Could I get the report to you by Tuesday instead? It'll be in your inbox by 5PM—hopefully sooner." And then, you know, make sure it happens.
+
+Resource related - are enough resources there? Are you less on skillful resources? Do you have overloaded resources? are you under-estimating?
+
+Responsibility is about looking forward, not about blaming someone for missed deadlines or poorly communicated objectives.
+
+Before you communicate the delay to the client, consider when you can complete the deliverable. This new deadline shouldn’t be rushed, if possible. It need to meet quality standards. Don’t put your team in a situation where they deliver low quality work that is also late. Once you agree upon this deadline, stick to it -- even if it means your team needs to work extra hours to get the project done on-time.
+ 
+Make Sure It's Rare
+Make sure you're not in the habit of missing deadlines. When people turn things in late regularly, it gets harder and harder to give them a pass. Hold a project post-mortem to discuss the issues, and give the team the opportunity to express their own opinions on what went wrong and how the team could have prevented the situation.
+
+What is CI, CT, CD? 
+Continuous Integration is a software development practice where members of a team integrate their work frequently,usually each person integrates at least daily – leading to multiple integrations per day. Each integration is verified by an automated build (including test) to detect integration errors as quickly as possible.The primary purpose is to enable early detection of integration bugs, which should eventually result in tighter cohesion and more development collaboration. 
+
+Continuous integration puts a great emphasis on testing automation to check that the application is not broken whenever new commits are integrated into the main branch. Developers practicing continuous integration merge their changes back to the main branch as often as possible. The developer's changes are validated by creating a build and running automated tests against the build. 
+
+Continuous Delivery is an extension of continuous integration to make sure that you can release new changes to your customers quickly in a sustainable way. This means that on top of having automated your testing, you also have automated your release process and you can deploy your application at any point of time by clicking on a button.
+
+You can decide to release daily, weekly, fortnightly, or whatever suits your business requirements. However, if you truly want to get the benefits of continuous delivery, you should deploy to production as early as possible to make sure that you release small batches, that are easy to troubleshoot in case of a problem.
+
+Continuous deployment goes one step further than continuous delivery. With this practice, every change that passes all stages of your production pipeline is released to your customers. There's no human intervention, and only a failed test will prevent a new change to be deployed to production.
+
+It’s logically the next step after Continuous Delivery, where it undergoes an automated functional testing executed in full scale giving us the confidence to establish a good build to be pushed into production.
+
+What is your opinion about DevOps? How much time you had taken to implement DevOps?
+3-4 weeks to implement CT (it involves writing test cases to approx get 10% coverage with struts based code) & 1-2 weeks for CD.
+Refer why to use DevOps and where.
+
+Ticketing MicroServices - how will you go about it
+ArrayList Vs LinkedList
+Group By Clause
+Sleep vs Wait
+
+
+
+Draw Backs of JDBC:
+
+> In JDBC, Programmer has to take care of DB Connection - creation, exception handling and closure.
+> If Programmer didn’t close the connection in the finally block, then JDBC is not responsible to close that connection.
+> If the table structure is modified then the JDBC program (original SQL Commands) doesn’t work.  Again we need to modify and compile and re-deploy required, which is tedious.
+> JDBC generates database related error codes when exceptions are encountered; Java programmers are unaware of these error codes.
+> In the Enterprise applications, the data flow with in an application from class to class will be in the form of objects, but while storing data finally in a database using JDBC then that object will be converted into text.  Because JDBC doesn’t transfer objects directly.
+
+In order to overcome above problems,  Hibernate came into picture!
+
+--------------------------
+Problem with NON-ORM implementations for DB functions:
+
+1. Conversion needed while storing or retrieving data from DB:
+	Object -> SQL Query
+	Recordset -> Object
+2. Mapping mem var to columns - needs to be done.
+3. Mapping relationships - User object has reference to Address object. Dependecies also need to be taken care (Foreign Key/Primary Key). 
+4. Handling data types: ex. boolean type data (ex. active data); values - 1/0, Y/N, true/false - this data type conversion needs to be handled.
+5. Managing changes to the object state: Business service changes to the objects will have to again coverted to SQL query while storing.
+
+Object relational mappping implementation like hibernate tries to handle these problems.
+--------------------------
+What is Hibernate?
+Hibernate is the ORM tool given to transfer the data between a java (object) application and a database (Relational) in the form of the objects.  
+
+It was started in 2001 by Gavin King as an alternative to EJB2 style entity bean.
+
+Hibernate is a non-invasive framework meaning it won't force the programmers to extend/implement any class/interface. Because of use of POJO classes, Hibernate is light weight. It is purely for persistence (to store/retrieve data from Database).
+
+The term Object/Relational Mapping refers to the technique of mapping data from an object model representation to a relational data model representation (and visa versa).
+
+Hibernate not only takes care of the mapping from Java classes to database tables (and from Java data types to SQL data types), but also provides data query and retrieval facilities. It can significantly reduce development time otherwise spent with manual data handling in SQL and JDBC. Hibernate’s design goal is to relieve the developer from 95% of common data persistence-related programming tasks by eliminating the need for manual, hand-crafted data processing using SQL and JDBC. However, unlike many other persistence solutions, Hibernate does not hide the power of SQL from you and guarantees that your investment in relational technology and knowledge is as valid as always.
+
+Hibernate may not be the best solution for data-centric applications that only use stored-procedures to implement the business logic in the database, it is most useful with object-oriented domain models and business logic in the Java-based middle-tier. 
+
+--------------------------
+Requirements:
+
+Hibernate 5.2 and later versions require at least Java 1.8 and JDBC 4.2.
+
+Hibernate 5.1 and older versions require at least Java 1.6 and JDBC 4.0.
+
+--------------------------
+Features/advantages of Hibernate:
+JPA Provider - In addition to its own "native" API, Hibernate is also an implementation of the Java Persistence API (JPA) specification. As such, it can be easily used in any environment supporting JPA including Java SE applications, Java EE application servers, Enterprise OSGi containers, etc.
+
+Idiomatic persistence - Hibernate enables you to develop persistent classes following natural Object-oriented idioms including inheritance, polymorphism, association, composition, and the Java collections framework. Hibernate requires no interfaces or base classes for persistent classes and enables any class or data structure to be persistent.
+
+Support Performance - Hibernate supports lazy initialization, numerous fetching strategies and optimistic locking with automatic versioning and time stamping. Hibernate requires no special database tables or fields and generates much of the SQL at system initialization time instead of at runtime. Hibernate consistently offers superior performance over straight JDBC code, both in terms of developer productivity and runtime performance.
+
+Scalable - Hibernate was designed to work in an application server cluster and deliver a highly scalable architecture. Hibernate scales well in any environment: Use it to drive your in-house Intranet that serves hundreds of users or for mission-critical applications that serve hundreds of thousands.
+
+Reliable - Hibernate is well known for its excellent stability and quality, proven by the acceptance and use by tens of thousands of Java developers.
+
+Extensibile - Hibernate is highly configurable and extensible
+
+--------------------------
+Persisting data to DB without hibernate:
+	1. JDBC DB config - hostname, port, credentials etc.
+	2. Define Model object to be stored.
+	3. Service method to create/instantiate Model Object.
+	4. Database Design for data storage.
+	5. DAO method to save object using SQL query.
+--------------------------
+Persisting data to DB with hibernate:
+	1. JDBC DB config - hibernate configuration (hibernate.cfg.xml)
+	2. Define Model object to be stored - @Entity annotated class.
+	3. Service method to create/instantiate Model Object - use Hibernate API
+	Database Design for data storage - optional or not required (hibernate.hbm2ddl.auto property of hibernate configuration can take care of it).
+	DAO method to save object using SQL query - not needed.
+--------------------------
+Service method to create/instantiate Model Object - use Hibernate API
+	1. Create a "session factory" (one per app as is costlier operation - this step should use the default config file i.e. hibernate.cfg.xml file.): 
+		SessionFactory sessionFactory = new Configuration().configure().buildSessionFactory();
+	2. Create a "session" from "session factory": 
+		Session session = sessionFactory.openSession();
+	3. Save model object using session:
+		session.beginTransaction();
+		session.save(userObject);
+		session.getTransaction().commit();
+		session.close();
+	4. Create another session for a different opertation Ex. UserDetails userObject2 = (UserDetails)session.get(UserDetails.Class, 11186) and close it.
+	5. Close sessionFactory.
+* Create Session Factory - based on cfg file. Only one obj per appl.
+* Create Session - from Session Factory.
+* Use Session to save model obj.
+--------------------------
+Annotations:
+@Entity annotate bean or pojo class. property name of the same can be used for the respective table name in DB. Resevered Keywords like user is not allowed for DB table name.
+
+@Table annotate the pojo class to map to a table. property name of the same can be used to name the DB table. It won't change the default (class name) entity name (will be used in HQL query).
+
+@Id & @Column annotations can be used with individual data members of the POJO class or with the getters to the same. Value to be stored in DB will be picked up using getter methods.
+
+@Id => Primary Key.
+Surrogate Key -> When a table is not having a column to be marked as primary key, Sr No key column (for example) can be added for making it as primary key.
+
+Hibernate can generate value for Primary (Surrogate) Key using @GeneratedValue annotation along with @Id.
+
+@GeneratedValue has property "strategy" with possible values of GenerationType enumeration - AUTO, IDENTITY (not with all DB), SEQUENCE (uses DB Sequence object), TABLE. Default is AUTO. Ex. @GeneratedValue (strategy=GenerationType.AUTO)
+
+Hibernate maps java data types to db data types.
+	String -> varchar(255)
+	Int -> int
+	Date -> date or timestamp
+	
+@Basic annotation for a data member tells hibernate that consider it as a data to be persisted. Default behavior is also the same.
+
+@Transient annotation implies that the respective data member will be ignored for data persistence to DB. Static fields are also ignored.
+
+@Temporal annotation is used to take a part of the date data type. It has property TemporalType enumeration to choose value from like TemporalType.DATE, TemporalType.TIME etc.
+
+What if varchar(255) is not sufficient to store a column value?
+use @Lob annotation. Maps to BLOB or CLOB data types depending on data contents.
+--------------------------
+What if a data member is an Object itself. Ex. Address of UserDetails class?
+Address is "value object" inside UserDetails "Entity".
+
+Approach 1: to have separate columns for address object members. Mark Address as @Embeddable to make it an object of Value type or use @Embedded annotation with Address member variable on UserDetails class.
+
+However, 1 problem to address - what if 2 address data members are there - homeAddress & officeAddress. The corresponding insert will have duplicate name columns.
+=> use @AttributeOverride annotation. properties name & column can be used to override column names of Address data memebers.
+Ex.
+@AttributeOverrides({
+@AttributeOverride(name="street", column=@Column(name="home_street")),
+@AttributeOverride(name="city", column=@Column(name="home_city")),
+.
+.
+})
+private Address homeAddress;
+
+Approach 2: 
+
+-------------------------------------
+ArrayList vs HashMap in Java
+
+A Map is a map, or "associative array". It has a key->value layout. A List is on the other hand a list, which is an ordered collection of elements.
+
+1) Implementation: ArrayList implements List Interface while HashMap is an implementation of Map interface. 
+
+2) Memory consumption: ArrayList stores the element’s value alone and internally maintains the indexes for each element.
+
+	 ArrayList<String> arraylist = new ArrayList<String>();
+	//String value is stored in array list
+	 arraylist.add("Test String");
+	 
+HashMap stores key & value pair. For each value there must be a key associated in HashMap. That clearly shows that memory consumption is high in HashMap compared to the ArrayList.
+
+	HashMap<Integer, String> hmap= new HashMap<Integer, String>();
+	//String value stored along with the key value in hash map
+	 hmap.put(123, "Test String");
+	 
+3) Order: ArrayList maintains the insertion order while HashMap doesn’t. Which means ArrayList returns the list items in the same order in which they got inserted into the list. 
+
+4) Duplicates: ArrayList allows duplicate elements but HashMap doesn’t allow duplicate keys (It does allow duplicate values).
+
+5) Nulls: ArrayList can have any number of null elements. HashMap allows one null key and any number of null values.
+
+6) get method: In ArrayList we can get the element by specifying the index of it. In HashMap, the elements is being fetched by specifying the corresponding key.
+
+7) Keys of HashMap must implements equals and hashCode method correctly, ArrayList doesn't have that requirement but its good to have that because contains()  method of ArrayList will use equals() method to see if that object already exists or not.
+
+When to use HashMap and when to use ArrayList?
+When you need a structure from which you will be retrieving items randomly - use a HashMap.
+When you will be retrieving items in order (e.g. using a for loop) - use an ArrayList
+
+There's also a combined data structure, the LinkedHashMap, which offers fast access to arbitrary elements as well as predictable ordering.
+
+Similarity between ArrayList and HashMap in Java
+
+1) BothArrayList and HashMap are not synchronized, you should not use them in the multi-threading environment without external  synchronization.
+
+2) Both ArrayList and HashMap Iterator are fail-fast, they will throw ConcurrentModificationException as soon as they detect any structural change in ArrayList or HashMap once Iterator is created.
+
+3) Both ArrayList and HashMap allows null. 
+
+4) Both ArrayList and HashMap allows duplicate elements.
+
+5) ArrayList is backed by array similarly, HashMap is also internally implemented by Array.
+
+6) Both ArrayList and HashMap can be traversed through Iterator in Java.
+
+Practical Example:
+Employee objects are stored using HashMap. How to use ArrayList for storing Employee objects?
+
+List empList = ArrayList<Employee>;
+
+Employee id can be the index of the list.
+-------------------------------------
+ArrayList Vs LinkedList
+
+1) Search: ArrayList search operation is pretty fast compared to the LinkedList search operation. get(int index) in ArrayList gives the performance of O(1) while LinkedList performance is O(n).
+
+Reason: ArrayList maintains index based system for its elements as it uses array data structure implicitly which makes it faster for searching an element in the list. On the other side LinkedList implements doubly linked list which requires the traversal through all the elements for searching an element.
+
+2) Deletion: LinkedList remove operation gives O(1) performance while ArrayList gives variable performance: O(n) in worst case (while removing first element) and O(1) in best case (While removing last element).
+
+Conclusion: LinkedList element deletion is faster compared to ArrayList.
+
+Reason: LinkedList’s each element maintains two pointers (addresses) which points to the both neighbor elements in the list. Hence removal only requires change in the pointer location in the two neighbor nodes (elements) of the node which is going to be removed. While In ArrayList, all the elements need to be shifted to fill out the space created by removed element.
+
+3) Inserts Performance: LinkedList add method gives O(1) performance while ArrayList gives O(n) in worst case. Reason is same as explained for remove.
+
+4) Memory Overhead: ArrayList maintains indexes & element data whereas LinkedList maintains element data and two pointers for neighbor nodes hence the memory consumption is high in LinkedList comparatively.
+
+There are few similarities between these classes which are as follows:
+
+- Both ArrayList and LinkedList are implementation of List interface.
+- They both maintain the elements insertion order which means while displaying ArrayList and LinkedList elements the result set would be having the same order in which the elements got inserted into the List.
+- Both these classes are non-synchronized and can be made synchronized explicitly by using Collections.synchronizedList() method.
+- The iterator and listIterator returned by these classes are fail-fast (if list is structurally modified at any time after the iterator is created, in any way except through the iterator’s own remove or add methods, the iterator will throw a ConcurrentModificationException).
+
+When to use LinkedList and when to use ArrayList?
+1) As explained above the insert and remove operations give good performance [O(1)] in LinkedList compared to ArrayList[O(n)]. Hence if there is a requirement of frequent addition and deletion in application then LinkedList is a best choice.
+
+2) Search (get method) operations are fast in Arraylist [O(1)] but not in LinkedList [O(n)] so If there are less add and remove operations and more search operations requirement, ArrayList would be your best bet.
+-------------------------------------
+ArrayList and Vector
+ArrayList and Vector both implements List interface and maintains insertion order.
+
+They both use Array as a data structure internally. However there are few differences in the way they store and process the data. 
+
+1) Synchronization: ArrayList is non-synchronized which means multiple threads can work on ArrayList at the same time.
+
+Vector is synchronized. This means if one thread is working on Vector, no other thread can get a hold of it. Unlike ArrayList, only one thread can perform an operation on vector at a time.
+
+2) Resize: Both ArrayList and Vector can grow and shrink dynamically to maintain the optimal use of storage, however the way they resized is different. ArrayList grow by half of its size when resized while Vector doubles the size of itself by default when grows.
+
+3) Performance: ArrayList gives better performance as it is non-synchronized. Vector operations gives poor performance as they are thread-safe, the thread which works on Vector gets a lock on it which makes other thread wait till the lock is released.
+
+4) fail-fast: What is fail-fast => If the collection (ArrayList, vector etc) gets structurally modified by any means, except the add or remove methods of iterator, after creation of iterator then the iterator will throw ConcurrentModificationException. Structural modification refers to the addition or deletion of elements from the collection.
+
+As per the Vector javadoc, the Enumeration returned by Vector is NOT fail-fast. On the other side the iterator and listIterator returned by ArrayList are fail-fast.
+
+5) Who belongs to collection framework really? The vector was NOT the part of collection framework, it has been included in collections later. It can be considered as Legacy code. There is nothing about Vector which List collection cannot do. Therefore Vector should be avoided. If there is a need of thread-safe operation, make ArrayList synchronized or use CopyOnWriteArrayList which is a thread-safe variant of ArrayList.
+
+There are few similarities between these classes which are as follows:
+- Both Vector and ArrayList use growable array data structure.
+- The iterator and listIterator returned by these classes (Vector and ArrayList) are fail-fast.
+- They both are ordered collection classes as they maintain the elements insertion order.
+- Vector & ArrayList both allows duplicate and null values.
+- They both grows and shrinks automatically when overflow and deletion happens.
+
+When to use ArrayList and when to use vector?
+It totally depends on the requirement. If there is a need to perform “thread-safe” operation, the vector is your best bet as it ensures that only one thread access the collection at a time.
+
+Performance: Synchronized operations consumes more time compared to non-synchronized ones so if there is no need for thread safe operation, ArrayList is a better choice as performance will be improved because of the concurrent processes.
+-------------------------------------
+How to make ArrayList synchronized?
+As I stated above ArrayList methods are non-synchronized but still if there is a need you can make them synchronized like this –
+
+//Use Collecions.synzhonizedList method
+List list = Collections.synchronizedList(new ArrayList());
+...
+
+//If you wanna use iterator on the synchronized list, use it
+//like this. It should be in synchronized block.
+synchronized (list) {
+  Iterator iterator = list.iterator();
+  while (iterator.hasNext())
+      ...
+      iterator.next();
+      ...
+}
+-------------------------------------
+How to sort Hashtable in java
+Hashtable doesn’t preserve the insertion order, neither it sorts the inserted data based on keys or values. Which means no matter what keys & values you insert into Hashtable, the result would not be in any particular order.
+
+The are ways to sort Hashtable using Collections.list and Collections.sort, however best thing to do is use LinkedHashMap or TreeMap.
+
+Use LinkedHashMap: When you want to preserve the insertion order.
+Use TreeMap: When you want to sort the key-value pairs.
+
+      TreeMap<Integer, String> tm= new TreeMap<Integer, String>();
+      tm.put(10, "Chaitanya");
+      tm.put(1, "Ajeet");
+      tm.put(11, "Test");
+      // Get a set of the entries
+      Set set = tm.entrySet();
+      // Get an iterator
+      Iterator i = set.iterator();
+      // Display elements
+      while(i.hasNext()) {
+        Map.Entry me = (Map.Entry)i.next();
+        System.out.print(me.getKey() + ": ");
+        System.out.println(me.getValue());
+      }
+-------------------------------------
+HashMap vs Hashtable
+
+1) HashMap is non-synchronized. This means if it’s used in multithread environment then more than one thread can access and process the HashMap simultaneously.
+
+Hashtable is synchronized. It ensures that no more than one thread can access the Hashtable at a given moment of time. The thread which works on Hashtable acquires a lock on it to make the other threads wait till its work gets completed.
+
+2) HashMap allows one null key and any number of null values.
+
+Hashtable doesn’t allow null keys and null values.
+
+3) HashMap implementation LinkedHashMap maintains the insertion order and TreeMap sorts the mappings based on the ascending order of keys.
+
+Hashtable doesn’t guarantee any kind of order. It doesn’t maintain the mappings in any particular order.
+
+4) Initially Hashtable was not the part of collection framework it has been made a collection framework member later after being retrofitted to implement the Map interface.
+
+HashMap implements Map interface and is a part of collection framework since the beginning.
+
+5) Another difference between these classes is that the Iterator of the HashMap is a fail-fast and it throws ConcurrentModificationException if any other Thread modifies the map structurally by adding or removing any element except iterator’s own remove() method. In Simple words fail-fast means: When calling iterator.next(), if any modification has been made between the moment the iterator was created and the moment next() is called, a ConcurrentModificationException is immediately thrown.
+
+Enumerator for the Hashtable is not fail-fast.
+
+When to use HashMap and Hashtable?
+
+1) As stated above the main difference between HashMap & Hashtable is synchronization. If there is a need of thread-safe operation then Hashtable can be used as all its methods are synchronized but it’s a legacy class and should be avoided as there is nothing about it, which cannot be done by HashMap. For multi-thread environment I would recommend you to use ConcurrentHashMap (Almost similar to Hashtable) or even you can make the HashMap synchronized explicitly.
+
+2) Synchronized operation gives poor performance so it should be avoided until unless required. Hence for non-thread environment HashMap should be used without any doubt.
+-------------------------------------
+Is Java pass-by-value or pass-by-reference?
+Java is always pass-by-value. Unfortunately, they decided to call the location of an object a "reference". When we pass the value of an object, we are passing the reference to it. This is confusing to beginners.
+
+The key to understanding this is that something like
+
+Dog myDog;
+is not a Dog; it's actually a pointer to a Dog.
+
+What that means, is when you have
+
+Dog myDog = new Dog("Rover");
+foo(myDog);
+you're essentially passing the address of the created Dog object to the foo method.
+
+Suppose the Dog object resides at memory address 42. This means we pass 42 to the method.
+
+if the Method were defined as
+
+public void foo(Dog someDog) {
+    someDog.setName("Max");     // AAA
+    someDog = new Dog("Fifi");  // BBB
+    someDog.setName("Rowlf");   // CCC
+}
+let's look at what's happening.
+
+the parameter someDog is set to the value 42
+at line "AAA"
+someDog is followed to the Dog it points to (the Dog object at address 42)
+that Dog (the one at address 42) is asked to change his name to Max
+at line "BBB"
+a new Dog is created. Let's say he's at address 74
+we assign the parameter someDog to 74
+at line "CCC"
+someDog is followed to the Dog it points to (the Dog object at address 74)
+that Dog (the one at address 74) is asked to change his name to Rowlf
+then, we return
+Now let's think about what happens outside the method:
+
+Did myDog change?
+
+There's the key.
+
+Keeping in mind that myDog is a pointer, and not an actual Dog, the answer is NO. myDog still has the value 42; it's still pointing to the original Dog (but note that because of line "AAA", its name is now "Max" - still the same Dog; myDog's value has not changed.)
+-------------------------------------
+
+What is URL rewriting?
+URL manipulation, also called URL rewriting, is the process of altering (often automatically by means of a program written for that purpose) the parameters in a URL (Uniform Resource Locator). 
+
+In URL rewriting, we append a token or identifier to the URL of the next Servlet or the next resource. We can send parameter name/value pairs using the following format:
+
+url?name1=value1&name2=value2&??
+
+When the user clicks the hyperlink, the parameter name/value pairs will be passed to the server. From a Servlet, we can use getParameter() method to obtain a parameter value.
+
+Advantage of URL Rewriting
+
+It will always work whether cookie is disabled or not (browser independent).
+Extra form submission is not required on each pages.
+
+Disadvantage of URL Rewriting
+
+It will work only with links.
+It can send Only textual information.
+-------------------------------------
+What is SQL Injection?
+SQL injection is one of the most common web hacking techniques. It is the placement of malicious code in SQL statements, via web page input. It may also be used to destroy your database.
+
+By leveraging an SQL Injection vulnerability, given the right circumstances, an attacker can use it to bypass a web application’s authentication and authorization mechanisms and retrieve the contents of an entire database. SQL Injection can also be used to add, modify and delete records in a database, affecting data integrity.
+
+An SQL Injection needs just two conditions to exist – a relational database that uses SQL, and a user controllable input which is directly used in an SQL query.
+
+Ex: SQL injection usually occurs when you ask a user for input, like their username/userid, and instead of a name/id, the user gives you an SQL statement that you will unknowingly run on your database.
+
+UserId: 105 OR 1=1
+
+Then, the SQL statement will look like this: SELECT * FROM Users WHERE UserId = 105 OR 1=1;
+It will return ALL rows from the "Users" table, since OR 1=1 is always TRUE.
+
+Another ex. 
+User Name: " or ""="
+Password: " or ""="
+
+The code at the server will create a valid SQL statement like this:
+SELECT * FROM Users WHERE Name ="" or ""="" AND Pass ="" or ""=""
+The SQL above is valid and will return all rows from the "Users" table, since OR ""="" is always TRUE.
+
+java.sql.Statement enforces SQL injection, because we end up using query formed using concatenated SQL strings in java JDBC.
+java.sql.PreparedStatement prevents SQL injection, because text for all the parameter values is escaped in java JDBC.
+
+How to avoid SQL injection?
+1. Using Prepared Statements (with Parameterized Queries):
+Prepared statements ensure that an attacker is not able to change the intent of a query, even if SQL commands are inserted by an attacker. 
+Ex: If an attacker were to enter the userID of tom' or '1'='1, the parameterized query would not be vulnerable and would instead look for a username which literally matched the entire string tom' or '1'='1.
+
+Language specific recommendations:
+Java EE – use PreparedStatement() with bind variables
+Hibernate - use createQuery() with bind variables (called named parameters in Hibernate)
+
+2. 
+-------------------------------------
+JDBC PreparedStatement example – Batch Update
+
+dbConnection.setAutoCommit(false);//commit trasaction manually
+
+PreparedStatement = dbConnection.prepareStatement(insertTableSQL);
+
+preparedStatement.setInt(1, 101);
+.
+.
+preparedStatement.setTimestamp(4, getCurrentTimeStamp());
+preparedStatement.addBatch();
+
+preparedStatement.setInt(1, 102);
+.
+.
+preparedStatement.setTimestamp(4, getCurrentTimeStamp());
+preparedStatement.addBatch();
+
+preparedStatement.executeBatch();
+dbConnection.commit();
+
+Batch Update is not limit to Insert statement, it’s apply for Update and Delete statement as well.
+
+Alternatively, you can use normal executeUpdate() method. However, every executeUpdate() will hit database once. For batch update process, it hits database when executeBatch() is called.
+-------------------------------------
+java.sql.CallableStatement
+The java.sql.CallableStatement is an interface which is used to execute SQL stored procedures, cursors and functions in java. 
+
+java.sql.CallableStatement extends the PreparedStatement interface. 
+ 
+As CallableStatement is sub interface of PreparedStatement it adds a level of abstraction, so the execution of stored procedure or functions need not to be dbms specific.
+
+How to deal with SQL stored procedures IN parameter in java- 
+ 1) set methods are used for setting IN parameter values. (Must know : set methods are inherited from java.sql.PreparedStatement) 
+
+How to deal with SQL stored procedures OUT parameter in java- 
+ 1) OUT parameters must be registered in java before executing the stored procedure, 
+ 2) Execute database stored procedure,
+ 3) Then retrieve values of OUT parameters using using get methods. 
+ 
+How to deal with SQL stored procedures IN OUT parameter in java- 
+ - Like IN parameters, set methods are used for setting IN OUT parameter values. 
+ - Like OUT parameters, IN OUT parameters must be registered in java before executing the stored procedure, 
+ - Execute database stored procedure, Then like OUT parameters, retrieve values of IN OUT parameters using using get methods. 
+-------------------------------------
+Statement object execute methods:
+
+Once you've created a Statement object, you can then use it to execute an SQL statement with one of its three execute methods.
+
+1. boolean execute (String SQL): Returns a boolean value of true if a ResultSet object can be retrieved; otherwise, it returns false. Use this method to execute SQL DDL statements or when you need to use truly dynamic SQL.
+
+2. int executeUpdate (String SQL): Returns the number of rows affected by the execution of the SQL statement. Use this method to execute SQL statements for which you expect to get a number of rows affected - for example, an INSERT, UPDATE, or DELETE statement.
+
+3. ResultSet executeQuery (String SQL): Returns a ResultSet object. Use this method when you expect to get a result set, as you would with a SELECT statement.
+
+If you close the Connection object first, it will close the Statement object as well. However, you should always explicitly close the Statement object to ensure proper cleanup.
+-------------------------------------
+Unix experience?
+I've 6+ years of experience working with Unix or Linux shell scripts. Various activities that I have done on Unix or Linux servers are:
+	1. Installing softwares & verifying them (like Java, Maven, SonarQube etc.)
+	2. File Management - disk full issue, file copy with SCP, SFTP etc.
+	3. SSH Putty session mgmt - login to the server, switch users using sudo commands.
+	4. Writing shell scripts for different cron jobs.
+	5. Modifying cron jobs.
+	6. Checking log files.
+	7. Deploying war files on WLS; WL Server restart 
+	8. Modifying files using VI editor
+		Basic VI commands:
+			:wq - quit with saving (write & quit)
+			:q! - quit without saving; q - quit
+			sh - invoke shell
+			/<pattern>: search forward a string pattern in file; n - go to next occurrence; N - go to previous occurrence.
+			?<pattern>: search backward a string pattern in file;
+			dd - delete a line; nd - delete n characters.
+			a - Append after; A - Append at end of line
+			i, I - Insert before
+			x - Delete after; X - Delete before
+			:0<Return> or 1G - move cursor to first line in file
+			:n<Return> or nG - move cursor to line n
+			:$<Return> or G - move cursor to last line in file
+			r - replace single character under cursor (no <Esc> needed)
+			R - replace characters, starting with current cursor position, until <Esc> hit
+			yy - copy (yank, cut) the current line into the buffer
+			Nyy or yNy - copy (yank, cut) the next N lines, including the current line, into the buffer
+			p - put (paste) the line(s) in the buffer into the text after the current line
+			^g - provides the current line number, along with the total number of lines, in the file at the bottom of the screen
+-------------------------------------
+Design Patterns in Java:
+A design pattern is a well described solution to a common software problem. Some of the benefits of using design patterns are:
+
+- Design Patterns are already defined and provides industry standard approach to solve a recurring problem, so it saves time if we sensibly use the design pattern. 
+- Using design patterns promotes reusability that leads to more robust and highly maintainable code. 
+- It makes our code easy to understand and debug. 
+- It leads to faster development. New members of team can understand it easily.
+
+Java Design Patterns are divided into three categories – creational, structural, and behavioral design patterns
+			
+Creational Design Patterns
+	Singleton Pattern
+	Factory Pattern
+	Abstract Factory Pattern
+	Builder Pattern
+	Prototype Pattern
+Structural Design Patterns
+	Adapter Pattern
+	Composite Pattern
+	Proxy Pattern
+	Flyweight Pattern
+	Facade Pattern
+	Bridge Pattern
+	Decorator Pattern
+Behavioral Design Patterns
+	Template Method Pattern
+	Mediator Pattern
+	Chain of Responsibility Pattern
+	Observer Pattern
+	Strategy Pattern
+	Command Pattern
+	State Pattern
+	Visitor Pattern
+	Interpreter Pattern
+	Iterator Pattern
+	Memento Pattern
+J2EE Patterns
+	These design patterns are specifically concerned with the presentation tier. These patterns are identified by Sun Java Center.
+
+What all design patterns have you worked with:
+I have worked with - 
+	Singleton, Factory, Decorator, Iterator, MVC, Service Locator Pattern, Front Controller, Data Access Object Pattern
+	
+MVC is more of an architectural pattern, but not for complete application. MVC mostly relates to the UI / interaction layer of an application. MVC Pattern stands for Model-View-Controller Pattern. This pattern is used to separate application's concerns.
+	- Model - Model represents an object or JAVA POJO carrying data. It can also have logic to update controller if its data changes.
+	- View - View represents the visualization of the data that model contains.
+	- Controller - Controller acts on both model and view. It controls the data flow into model object and updates the view whenever data changes. It keeps view and model separate.
+
+The service locator design pattern is used when we want to locate various services using JNDI lookup. Considering high cost of looking up JNDI for a service, Service Locator pattern makes use of caching technique. For the first time a service is required, Service Locator looks up in JNDI and caches the service object. Further lookup or same service via Service Locator is done in its cache which improves the performance of application to great extent. Following are the entities of this type of design pattern.
+	- Service - Actual Service which will process the request. Reference of such service is to be looked upon in JNDI server.
+	- Context / Initial Context -JNDI Context, carries the reference to service used for lookup purpose.
+	- Service Locator - Service Locator is a single point of contact to get services by JNDI lookup, caching the services.
+	- Cache - Cache to store references of services to reuse them
+	- Client - Client is the object who invokes the services via ServiceLocator. 
+	
+The front controller design pattern is used to provide a centralized request handling mechanism so that all requests will be handled by a single handler. This handler can do the authentication/ authorization/ logging or tracking of request and then pass the requests to corresponding handlers. Following are the entities of this type of design pattern.
+	- Front Controller - Single handler for all kind of request coming to the application (either web based/ desktop based).
+	- Dispatcher - Front Controller may use a dispatcher object which can dispatch the request to corresponding specific handler.
+	- View - Views are the object for which the requests are made.
+
+Data Access Object Pattern or DAO pattern is used to separate low level data accessing API or operations from high level business services. Following are the participants in Data Access Object Pattern.
+	- Data Access Object Interface - This interface defines the standard operations to be performed on a model object(s).
+	- Data Access Object concrete class -This class implements above interface. This class is responsible to get data from a datasource which can be database / xml or any other storage mechanism.
+	- Model Object or Value Object - This object is simple POJO containing get/set methods to store data retrieved using DAO class.
+	
+-------------------------------------
+Singleton Design Pattern:
+Singleton pattern restricts the instantiation of a class and ensures that only one instance of the class exists in the java virtual machine. 
+
+The singleton class must provide a global access point to get the instance of the class. Singleton pattern is used for logging, drivers objects, caching and thread pool.
+
+There are many classes in JDK which is implemented using Singleton pattern like java.lang.Runtime which provides getRuntime() method to get access of it and used to get free memory and total memory in Java. Other Ex - Java.awt.Desktop with getDesktop(); Java.awt.Toolkit with getDefaultToolkit() etc. 
+
+Another example is a utility classes like Popup in GUI application, if you want to show popup with message you can have one PopUp class on whole GUI application and anytime just get its instance, and call show() with message.
+
+Java Singleton Pattern is one of the Gangs of Four Design patterns and comes in the Creational Design Pattern category. 
+
+Ways to implement it:
+
+1. With public static final field initialized during class loading (Eager Loading)
+In eager initialization, the instance of Singleton Class is created at the time of class loading. But it has a drawback that instance is created even though client application might not be using it. Also, this method doesn’t provide any options for exception handling.
+
+public class SingletonClass
+{
+    private static final SingletonClass instance = new SingletonClass();
+	
+    //private constructor to avoid client applications to use constructor
+	private SingletonClass() {
+    }
+
+    public static SingletonClass getInstance() {
+      return instance;
+    }
+}
+
+2. Static block initialization
+Static block initialization implementation is similar to eager initialization, except that instance of class is created in the static block that provides option for exception handling.
+
+public class SingletonClass
+{
+    private static SingletonClass instance;
+	
+    //private constructor to avoid client applications to use constructor
+	private SingletonClass() {
+    }
+	
+	//static block initialization for exception handling
+    static{
+        try{
+            instance = new SingletonClass();
+        }catch(Exception e){
+            throw new RuntimeException("Exception occured in creating singleton instance");
+        }
+    }
+	 
+
+    public static SingletonClass getInstance() {
+      return instance;
+    }
+}
+
+Again, it creates the instance even before it’s being used and that is not the best practice to use. 
+
+3. By synchronizing getInstance() method (Lazy Loading)
+
+Before 1.5:
+static Singleton instance;
+
+public static synchronized Singleton getInstance() {
+  if (instance == null)
+    instance == new Singleton();
+  return instance;
+}
+
+This approach reduces the performance because of cost associated with the synchronized method.
+
+After 1.5:
+Changes to the memory model in 1.5 enabled the infamous Double-Checked Locking (DCL) idiom. With it, the synchronized block is used inside IF condition with an additional check to ensure that only one instance of singleton class is created. To implement DCL, you check a volatile field in the common path and only synchronize when necessary:
+
+static volatile Singleton instance;
+
+public static Singleton getInstance() {
+  if (instance == null) {
+    synchronized (Singleton.class) {
+      if (instance == null)
+        instance == new Singleton();
+    }
+  }
+  return instance;
+}
+
+But volatile isn't that much faster than synchronized. Use #4 (Singleton holder pattern) instead.
+
+Double checked locking should only be used when you have requirement for lazy initialization otherwise use Enum to implement singleton or simple static final variable.
+
+4. Usign static nested class (Singleton holder pattern)
+Initialization on Demand Holder (IODH) idiom requires very little code and has zero synchronization overhead (even faster than volatile). IODH utilizes lazy class initialization - JVM will not initialize instance until someone calls getInstance().
+
+It is also called Bill Pugh Singleton Implementation. And it uses a inner static holder class. This is the most widely used approach for Singleton class as it doesn’t require synchronization.
+
+public class Singleton {
+	private Singleton() {}
+	
+	private static class SingletonHolder {
+	  private static final Singleton INSTANCE = new Singleton();    
+	}
+
+	public static Singleton getInstance() {
+	  return SingletonHolder.INSTANCE;
+	}
+}
+
+5. Using Enums (since Java 1.5): 
+A single-element enum type is the best way to implement a singleton. Java ensures that any enum value is instantiated only once in a Java program. Since Java Enum values are globally accessible, so is the singleton. 
+
+public enum Singleton { 
+    INSTANCE;
+	
+    public void myMethod(){  
+    }
+}
+-------------------------------------
+How do you prevent for creating another instance of Singleton during serialization?
+You can prevent this by using readResolve() method, since during serialization readObject() is used to create instance and it return new instance every time. However, you can replace it with original Singleton instance by using readResolve().
+
+Use Enum to create Singleton because serialization of enum is taken care by JVM and it guarantees single instance.
+-------------------------------------
+Static Vs Singleton class:
+
+The essential difference is: The existence form of a singleton is an object, static is not. This conduced the following things:
+
+Singleton can be extended. Static class cannot be extended.
+Singleton creation may not be threadsafe if it isn't implemented properly. Static are thread-safe.
+Singleton can be passed around as an object. Static cannot.
+Singleton can be garbage collected. Static cannot.
+
+Singleton Class is class of which only single instance can exists per classloader. No instance of this class exists. Only fields and methods can be directly accessed as constants or helper methods.
+
+A static class is one that has only static methods, for which a better word would be "functions". The design style embodied in a static class is purely procedural.
+
+Singleton, on the other hand, is a pattern specific to OO design. It is an instance of an object (with all the possibilities inherent in that, such as polymorphism), with a creation procedure that ensures that there is only ever one instance of that particular role over its entire lifetime.
+
+"When to choose which one?". what are the advantages of singleton class over static class, these questions comes at the design stages.
+
+Singleton: Usage: classes that serve as global configuration , ex: Trial version of software with one database connection, JDK Runtime classes instances per jvm.
+
+When to go: 1.While developing your code,you think of forward compatibilty, like tomorrow when you need to convert this singleton class to normal class or allow subclassing. 2. You can provide lazy loading feature , when this singleton class is heavy.
+
+static: Usage: classes that basically does conversions,utility functions. please check Math class.
+
+When to go: helper classes, used by all the classes in your api development.
+Disadvantage: classes are eagerly loaded.
+-------------------------------------
+Generics features
+Generics allows a type or method to operate on objects of various types while providing compile-time type safety, making Java a fully statically typed language.
+
+1. Generics are implemented using Type Erasure:
+A class or an interface can be declared to define one or more type parameters and those type parameters should be provided at the time of object construction. Ex. - List<Long> list = new ArrayList<Long>();
+
+If you try to add any other type of element to this list, it will give you compile time error.
+
+Generics helps detect type related errors at compile time and makes your code safe.
+
+Once this piece of code is compiled ,the type information is erased resulting into similar byte code as we would have got if the same piece of code was written using Java 1.4 and below. This results in binary compatibility between different versions of Java. So, a List or List<> are all represented at run-time by the same type, List.
+
+2. Generics does not support sub-typing:
+Ex. - List<Number> numbers = new ArrayList<Integer>(); // will not compile
+
+This would have resulted in ClassCastException at runtime and type safety could not be achieved. 
+
+3. You can't create Generic Arrays:
+because arrays carry runtime type information about the type of elements. 
+
+Arrays uses type information at runtime to check the type of the object it contains and will throw ArrayStoreException if the type does not match. With Generics, type information gets erased at run time and the array store check will succeed in cases where it should fail.
+
+Ex. - 	T[] arr = new T[10];// this code will not compile
+		List<Integer>[] array = new List<Integer>[10]; // does not compile
+
+Arrays are covariant by default, where as Generics does not support covariance. 
+
+If the generic arrays were allowed, then we could assign ints array to an object array because arrays are covariant. After that we could add a List of double to the obj array. We will expect that this will fail with ArrayStoreException because we are assigning List of double to an array of List of integers. But the JVM cannot detect type mismatch because the type information gets erased. Hence the array store check succeeds, although it should have failed.
+
+4. Use of wildcards with extends or super to increase API flexibility
+For example, the addAll method in the Collection interface
+boolean addAll(Collection<? extends E> c)
+=> can not only add collection of type E but also of subtype of E.
+
+Other ex: if we create a List of Number then we can not only add List of number but we can also add List of Integer or any other subtype of Number.
+
+public static <T> boolean addAll(Collection<? super T> c, T... elements) ;
+
+In this method you are adding elements of type T to the collection c. super is used instead of extends because elements are added into the collection c whereas in the previous example of Collection interface addAll method elements were read from the collection . In the Effective Java book, Joshua Bloch calls this PECS . PECS stands for producer extends, consumer super. 
+
+5. Use of Multiple Bounds
+A type parameter can also have multiple bounds:
+<T extends B1 & B2 & B3>
+
+A type variable with multiple bounds is a subtype of all the types listed in the bound. If one of the bounds is a class, it must be specified first. For example:
+	Class A { /* ... */ }
+	interface B { /* ... */ }
+	interface C { /* ... */ }
+
+class D <T extends A & B & C> { /* ... */ }
+-------------------------------------
+Database design:
+DB Design - I wasn't involved with the one from scratch. But I've to understand the existing database design and modify on top of it for the additional functionality. You need to follow the existing practices (starting from nomenclature till the use of indexes, triggers or use of sequences, retrieval of records from db etc).
+
+The DB side experience consists of following activities:
+1. Writing new or modifying existing queries (simple to complicated).
+2. Analyzing queries and finetuning as required with the help of DBAs.
+3. Analyzing and modifying stored procedures, functions and packages.
+4. Executing procedures, functions & queries using JDBC, JPA and Linux shell scripts.
+5. Analyzing data from DB for tier 2 support issues.
+-------------------------------------
+Are you a quick learner
+I think I am. 
+
+I was asked to work on a POC for the client. Develop a microservices based app using open source technologies with a team of 2 more team members.
+
+And we did finish 2 functions from the main site (involving CRUD operations with UI) in 1 and half month. In that process, we learned using MicroServices based architecture, Spring Boot, REST Web Service, AngularJS, Bootstrap, HTML5, CSS3 and JSON. We had a working site ready for the demo and Client was very happy with that work.
+-------------------------------------
+What is type erasure
+Generics were introduced to the Java language to provide tighter type checks at compile time and to support generic programming. To implement generics, the Java compiler applies type erasure to:
+
+- Replace all type parameters in generic types with their bounds or Object if the type parameters are unbounded. The produced bytecode, therefore, contains only ordinary classes, interfaces, and methods.
+- Insert type casts if necessary to preserve type safety.
+- Generate bridge methods to preserve polymorphism in extended generic types.
+
+Type erasure ensures that no new classes are created for parameterized types; consequently, generics incur no runtime overhead.
+-------------------------------------
+Understanding hashcode & equals method:
+When it comes to working with collections, we should override the equals() and hashCode() methods properly in the classes of the elements being added to the collections. Otherwise we will get unexpected behaviors or undesired results.
+
+The Object class (the super class of all classes in Java) defines two methods equals() and hashCode().
+
+The equals()method is designed to compare two objects semantically (by comparing the data members of the class), whereas the == operator compares two objects technically (by comparing their references i.e. memory addresses).
+
+The implementation of equals()method in the Object class compares references of two objects. That means we should override it in our classes for semantic comparison - like these JDK classes override equals method: String, Date, Integer, Double etc.
+
+Ex: the List interface provides the contains(Object) method which can be used for checking if the specified object exists in the list. Behind the scene, the list invokes the equals()method on the search object to compare it with other objects in the collection.
+
+The hashCode()method returns an integer value which is used to distribute elements in buckets of a hashtable-based collection.
+
+The default implementation of hashCode() in the Object class returns an integer number which is the memory address of the object. We should override it in our own classes. Most classes in the JDK override hashCode()method for having their own version/implementation: String, Date, Integer, Double, etc. 
+
+As hashtable-based collection locates an element by invoking its hashCode() and equals() methods, so we must obey this contract (rules/) with regard to the way we override these methods:
+1. When the equals() method is overridden, the hashCode() method must be overridden as well.
+2. If two objects are equal, their hash codes must be equal as well.
+3. If two objects are not equal, there’s no constraint on their hash codes (their hash codes can be equal or not).
+4. If two objects have identical hash codes, there’s no constraint on their equality (they can be equal or not).
+5. If two objects have different hash codes, they must not be equal.
+
+If we violate these rules, the collections will behave unexpectedly such as the objects cannot be found, or wrong objects are returned instead of the correct ones.
+-------------------------------------
+What project planning work did you do?
+
+This one relates to the Project Mgmt related activities which are not related to the development. We had a quality professional team (QSG) allocated for auditing project mgmt related artifacts. I was working with other leads to prepare docs/metrics for auditing.
+
+Docs like - PMR, Project Plan, Dashboard ppt (have project app details, technologies, work items, issues/risk mgmt, learnings etc.), SLA violation report (for the apps with Prod Support) and other quality indicator docs (with metrics like app availability, failure rate, defect density etc.).
+
+PMR includes Monthly/Quarterly updates, Financial info (billing), Risk Mgmt, Delivery Metrics (Development, Supprot, Testing), Defect Prevention Activities, Continutity Plan review, SQA Metrics, CSAT/PSAT Metrics, ValueAdd, Learnings, App-wise Work Progress, SLA Details etc.
+
+Defect Prevention Activities include analysing defects and specifying plan on how to correct them going ahead. Corrective action examples can be - peer review, checklist modification etc.
+
+Following activities are carried out during DP 
+•	Collect Defect Data along with Class and Sub-Class – Defects will be maintained in Spectrum/TIPS
+•	Identify 20% of the classes causing 80% of the defects using Pareto analysis
+•	The root causes for defect class / sub class.
+•	Decide on the action plan to eliminate the root causes
+•	Track the status of the implementation of action proposal
+•	Track the percentage (%) reduction in identified defect areas.
+
+Project Plan includes project overview, stakeholders/client info, org chart, h/w - s/w environment, tools used, escalation plan, resource plan, risk mgmt, project tracking, defect mgmt, CM, Continutity plan, Operational Process and SQA Plan.
+-------------------------------------
+Project Planning Overview:
+Communication plan: whom to inform & the frequency, which medium. Periodic Communication/Reporting to project stakeholders (sponsors). Report Progress.
+
+PM - like director of movie. Should distribute media.
+
+Scope Mgmt Plan: one should have process in place to manage scope change effectively. No one can anticipate all the contingencies. Hence need to incorporate scope change.
+
+Have provision for: 
+ - Approval of plans
+ - Gap Analysis should be done.
+ - Work Breakdown Structure (WBS)
+	The WBS is a breakdown/ decomposition of project work into distinct work items at higher level. These work items are aligned with the project objective and can help the project team to create expected deliverables.
+ - Budget & Resource assignment (Estimation)
+ - Identify critical Path.
+
+Risk in projects is the likelihood of the project's failure. During the project planning phase, risk must be analysed and a plan must be constructed to deal with risks in the event that they become actualized. 
+
+Careful & detailed planning help us to reduces risk and in turn uncertainty in any given project. In meticulously planned project, project planner attempts to make a provision for potential occurrences of uncertainties in advance.
+
+Project Scope Planning:
+Any project is expected to provide its stakeholders with certain outcome, which is commonly termed as project deliverables. These project deliverables depends on the scope of the project. 
+
+More detailing & precision during project planning definitely help the team organize their work efficiently & deliver the project more effectively. Without a project scope, project execution can go haywire. 
+
+Project Deliverables
+To define project scope, one needs to refer project requirements. The project planner needs to list down project deliverable items unambiguously stating whether they are ‘In Scope’ or ‘Not in Scope’. So, project scope is about outlining the project deliverables. Based on project scope, project planner(s)
+create(s) work break down structure (WBS). 
+-----------------------------
+What work have you done for DevOps?
+I used tools like Jenkins to faciliate implementation of DevOps practices in the team. 
+
+With Jenkins, we created jenkins job to implement CI, CT & CD for different apps under our Project. I personally have created the first such job for the team to follow guidelines of. High level steps involved for CI are:
+
+> Select “Build a free-style software project".
+> Source Code Management section - configure SVN properties
+> Build Triggers section - choose Build Periodically 
+> Build section, click “Add build step” and select “Invoke Maven 3” (You may require configuring Maven 3 on Jenkins instance if one is already not configured - Jenkins > Manage Jenkins > Global Tool Configuration > Maven Installations > Add Maven)
+mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true -Pcoverage-per-test
+-P implies profile added in maven pom file.
+> Build section, click “Add build step” button and select “Invoke Standalone Sonar Analysis” (You may require installing SonarQube Scanner if one is not already installed - Jenkins > Manage Jenkins > Configure System > Add SonarQube).
+> Verify Weblogic Deployer Plugin is installed on Jenkins instance. If not, get it from https://wiki.jenkins-ci.org/display/JENKINS/WebLogic+Deployer+Plugin
+> Configure Weblogic Deployer Plugin on Jenkins > Manage Jenkins > Configure System. In case weblogic server is not installed on Jenkins instance, generate the wlfullclient.jar and add it on weblogic library path. Provide xml file path containing deployments targets.
+NOTE: You can add jar and config file to SVN code first and then run partially the build job to get the code to the Jenkins job workspace.
+> Add post-build action “Deploy the artifact to any Weblogic environments”
+> Observe “WebLogic Deployments” log on build history.
+-----------------------------
+What is DevOps?
+DevOps is a culture which promotes collaboration between Development and Operations Team to deploy code to production faster in an automated & repeatable way. The word 'DevOps' is a combination of two words 'development' and 'operations.'
+
+DevOps helps to increases an organization's speed to deliver applications and services. It allows organizations to serve their customers better and compete more strongly in the market.
+
+In simple words, DevOps can be defined as an alignment of development and IT operations with better communication and collaboration.
+
+Why is DevOps is Needed?
+- Before DevOps, the development and operation team worked in complete isolation.
+- Testing and Deployment were isolated activities done after design-build. Hence they consumed more time than actual build cycles.
+- Without using DevOps, team members are spending a large amount of their time in testing, deploying, and designing instead of building the project.
+- Manual code deployment leads to human errors in production
+- Coding & operation teams have their separate timelines and are not in synch causing further delays.
+
+There is a demand to increase the rate of software delivery by business stakeholders.
+-----------------------------
+When to adopt DevOps?
+
+DevOps should be used for large distributed applications such as eCommerce sites or applications hosted on a cloud platform.
+
+When not to adopt DevOps?
+
+It should not be used in a mission-critical application like bank, power and other sensitive data sites. Such applications need strict access controls on the production environment, a detailed change management policy, access control policy to the data centers.
+-----------------------------
+How is DevOps different from Agile? DevOps Vs Agile?
+Stakeholders and communication chain a typical IT process:
+ - Customer + SW Requirement
+ - Developer + Tester
+ - IT Infra + Operations
+
+Agile addresses gaps in Customer and Developer communications. DevOps addresses gaps in Developer and IT Operations communications.
+
+Agile: Focuses more on functional and non-functional readiness.
+DevOps: focuses operational and business readiness.
+------------------------------
+DevOps Principles
+Here, are six principles which are essential when adopting DevOps:
+
+1. Customer-Centric Action: DevOps team must take customer-centric action for that they should constantly invest in products and services.
+
+2. End-To-End Responsibility: The DevOps team need to provide performance support until they become end-of-life. This enhances the level of responsibility and the quality of the products engineered.
+
+3. Continuous Improvement: DevOps culture focuses on continuous improvement to minimize waste. It continuously speeds up the improvement of product or services offered.
+
+4. Automate everything: Automation is a vital principle of DevOps process. This is not only for the software development but also for the entire infrastructure landscape.
+
+5. Work as one team: In the DevOps culture role of the designer, developer, and tester are already defined. All they needed to do is work as one team with complete collaboration.
+
+6. Monitor and test everything: It is very important for DevOps team to have a robust monitoring and testing procedures.
+------------------------------
+Why change in company
+I have been working with TechM for long time. I had been worked for the major clients of TechM. Now, I want to experience work culture of other company. With that I think I can improve myself. Working with different groups, clients & companies will certainly enrich my work experience - different problems to face, variety of new challenges, change in work dynamics etc.
+--------------------------------------
+Difference Between Hibernate get() and load() Methods ?
+Few Points About Hibernate get() & load()
+- Both are from Session interface, and we will call them as session.get() & session.load()
+- Both will be use for retrieving the object (a row) from the database
+
+The load() method is older; get() was added to Hibernate’s API later.
+
+load():
+When you call session.load() method, it will always return a “proxy” object.
+
+Proxy means, hibernate will prepare some fake object with given identifier value in the memory without hitting the database, for example if we call session.load(Student.class,new Integer(107));  > hibernate will create one fake Student object [row] in the memory with id 107, but remaining properties of Student class will not even be initialized.
+
+It will hit the database only when we try to retrieve the other properties of Student object i mean stdName, stdCountry. If object [row] not found in the database it will throws ObjectNotFoundException.
+
+If load() can’t find the object in the cache or database, an exception is thrown. The load() method never returns null.
+
+Since it returns a proxy object of requested entity, we can use it for lazy initialization purpose where we need only a reference of an object and no other its properties. It actually saves DB hits.
+
+From performance point of view, load() method is recommended when compared to get() method.
+
+get():
+When you call session.get() method, it will hit the database immediately and returns the original object (with total info). If the row is not available in the database, it returns null. Any subsequent calls on the same session will return the object from the cache only.
+
+We should go with this method when we want to make sure the required object i.e. data is present in the DB.
+--------------------------------------
+which version of hibernate you have used?
+I have used Hibernate 3 in my previous assignments. But for programming practice, I've used the latest i.e. Hibernate 5 (Java 8 and JPA 2.1 Compatible).
+JPA 1.0: Hibernate 3.2+
+JPA 2.0: Hibernate 3.5+
+JPA 2.1: Hibernate 4.3+
+--------------------------------------
+Differnce update() and merge() in Hibernate?
+
+We call update() and merge() methods to transfer an object from detached state to persistent state.
+
+A detached state object can be made persist by reattaching to a session. If previous session is closed then we can open a new session and we can reattach to a new session. To reattach we can use update() or merge() methods. Both are doing the same functionality, but there are few differences internally.
+
+When we call update() method on session, if that session doesn’t contains same object (provided in update())  in cache then update() method successfully executed and the object been converted detached state to persistent state. If already a session cache containing the same object then the update() method throws an exception called NonUniqueObjectException.
+
+If we call merge() method, then it verifies whether the same object is existed in the cache or not. If the object is existed in the cache then changes are copied in to the cache. other wise it will load the values to cache. Hence it doesn’t throw any exception.
+--------------------------------------
+Which action classes are used in struts 1
+Apache Struts is an open source framework used to develop JSP or servlet based web application. Struts extend the Java servlet API and are based on the model view controller or MVC design pattern.
+
+Action Class in Struts framework defines the business logic.
+
+- Action class should extend org.apache.struts.action.Action class.
+- Should override the execute method of the Action class.
+- The org.apache.struts.action.ActionServlet selects the Action class for incoming http request defined under the action mapping tag in the struts-config.xml.
+- These classes are used to invoke the classes at the business layer or data access layer to get the data from the bean and store the processed data and return the result or error depending upon the situation.
+- Developer has to take care of the multithreaded impact as the action classes are not thread safe.
+
+Struts has five different action classes of which the most commonly used are:
+ - Action
+ - DispatchAction
+
+Others are IncludeAction, ForwardAction, LookupDispatchAction, and SwitchAction
+ 
+Classes extending the org.apache.struts.actions.DispatchAction class have their own action forward methods. They can have multiple action forward methods thus becoming useful in case of multiple optional flows.
+
+<action path = "/menuAction" type = "com.home.upload.action.MenuAction" name = "MenuForm" input = "/menu.jsp" parameter = "method" > 
+	<forward name = "upload" path = "/fileUpload.jsp" /> 
+	<forward name = "listFiles" path ="/listUploadedFiles.jsp" /> 
+</action>
+--------------------------------------
+Which action classes are used in struts 2?
+
+Actions are the core of the Struts2 framework, as they are for any MVC (Model View Controller) framework. Each URL is mapped to a specific action, which provides the processing logic which is necessary to service the request from the user.
+
+Serves 2 imp purposes:
+1. The action plays an important role in the transfer of data from the request through to the view, whether its a JSP or other type of result.
+2. The action must assist the framework in determining which result should render the view that will be returned in the response to the request.
+
+In struts 2, action class is POJO (Plain Old Java Object). POJO means you are not forced to implement any interface or extend any class. Generally, execute method should be specified that represents the business logic.
+
+A convenient approach is to implement the com.opensymphony.xwork2.Action interface that defines 5 constants and one execute method. Action interface contains only one method execute that should be implemented overridden by the action class.
+
+The only requirement for actions in Struts2 is that there must be one noargument method that returns either a String or Result object and must be a POJO. If the no-argument method is not specified, the default behavior is to use the execute() method.
+
+Optionally you can extend the ActionSupport class which implements six interfaces including Action interface. It is a convenient class that implements many interfaces such as Action, Validateable, ValidationAware, TextProvider, LocaleProvider and Serializable . So it is mostly used instead of Action.
+
+The Action interface is as follows −
+
+public interface Action {
+   public static final String SUCCESS = "success";
+   public static final String NONE = "none";
+   public static final String ERROR = "error";
+   public static final String INPUT = "input";
+   public static final String LOGIN = "login";
+   public String execute() throws Exception;
+}
+--------------------------------------
+Struts 2 Configuration File - extending struts-default package - what is the significance?
+
+The struts application contains two main configuration files struts.xml file and struts.properties file.
+
+The struts.properties file is used to override the default values of default.xml file provided by struts framework. So it is not mandatory.
+
+struts.xml
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE struts PUBLIC "-//Apache Software Foundation//DTD Struts  
+Configuration 2.1//EN" "http://struts.apache.org/dtds/struts-2.1.dtd">  
+<struts>  
+	<package name="default" extends="struts-default">  
+  		<action name="product" class="com.javatpoint.Product">  
+			<result name="success">welcome.jsp</result>  
+		</action>  
+  	</package>  
+</struts>      
+
+We can easily divide our struts application into sub modules. The package element specifies a module. You can have one or more packages in the struts.xml file.
+
+Attributes of package element:
+	- name name is must for defining any package. 
+	- namespace It is an optional attribute of package. If namespace is not present, / is assumed as the default namespace. In such case, to invoke the action class, you need this URI: /actionName.action  
+	If you specify any namespace, you need this URI: /namespacename/actionName.action
+
+extends The package element mostly extends the struts-default package where interceptors and result types are defined. If you extend struts-default, all the actions of this package can use the interceptors and result-types defined in the struts-default.xml file.
+
+Action element: The action is the subelement of package and represents an action.
+
+Attributes of action element: 
+	- name name is must for defining any action.
+	- class class is the optional attribute of action. If you omit the class attribute, ActionSupport will be considered as the default action. A simple action may be as:
+		<action name="product">  
+	- method It is an optional attribute. By default, execute method will be considered as the method of action class. So this code:
+		<action name="product" class="com.javatpoint.Product">  
+		will be same as:
+		<action name="product" class="com.javatpoint.Product" method="execute">  
+	If you want to invoke a particular method of the action, you need to use method attribute.
+
+Result element: It is the sub element of action that specifies where to forward the request for this action.
+
+Attributes of result element:
+	- name is the optional attribute. If you omit the name attribute, success is assumed as the default result name.
+	- type is the optional attribute. If you omit the type attribute, dispatcher is assumed as the default result type.
+	
+Other elements:
+There are many other elements also such as global-exception-mappings, global-results, include etc. 
+--------------------------------------
+Explain MVC in struts
+
+Model - Action class (pojo with execute method), ActionForm class.
+View - JSP (result)
+Controller - ActionServlet
+
+The model contains the business logic and interact with the persistance storage to store, retrive and manipulate data.
+
+The view is responsible for dispalying the results back to the user. In Struts the view layer is implemented using JSP.
+
+The controller handles all the request from the user and selects the appropriate view to return. In Sruts the controller's job is done by the ActionServlet. 
+
+The following events happen when the Client browser issues an HTTP request.
+
+The ActionServlet receives the request.
+	- The struts-config.xml file contains the details regarding the Actions, ActionForms, ActionMappings and ActionForwards.
+	- During the startup the ActionServelet reads the struts-config.xml file and creates a database of configuration objects. Later while processing the request the ActionServlet makes decision by refering to this object.
+	
+When the ActionServlet receives the request it does the following tasks.
+	- Bundles all the request values into a JavaBean class which extends Struts ActionForm class.
+	- Decides which action class to invoke to process the request.
+	- Validate the data entered by the user.
+	- The action class process the request with the help of the model component. The model interacts with the database and process the request.
+	- After completing the request processing the Action class returns an ActionForward to the controller.
+	- Based on the ActionForward the controller will invoke the appropriate view.
+	
+The HTTP response is rendered back to the user by the view component.
+--------------------------------------
+Abstract class vs Interface - & when to use what?
+
+Abstract Class
+An abstract class is a class that is declared abstract—it may or may not include abstract methods. Abstract classes cannot be instantiated, but they can be subclassed. When an abstract class is subclassed, the subclass usually provides implementations for all of the abstract methods in its parent class. However, if it does not, then the subclass must also be declared abstract.
+
+Abstract classes are typically used as base classes for extension by subclasses. Consider using abstract classes if any of these statements apply to your situation:
+- You want to share code among several closely related classes. You can put these lines of code within abstract class and this abstract class should be extended by all these related classes.
+- You expect that classes that extend your abstract class have many common methods or fields or require access modifiers other than public (such as protected and private).
+- You want to declare non-static or non-final fields. This enables you to define methods that can access and modify the state of the object to which they belong.
+
+Interface
+An interface is just the declaration of methods of an Object, it’s not the implementation. In interface, we define what kind of operation an object can perform. These operations are defined by the classes that implement interface. Interfaces form a contract between the class and the outside world, and this contract is enforced at build time by the compiler.
+
+A Java class can only have 1 superclass, but it can implement multiple interfaces. Thus, if a class already has a different superclass, it can implement an interface, but it cannot extend another abstract class. Consider using interfaces if any of these statements apply to your situation:
+- It is total abstraction. All methods declared within an interface must be implemented by the class(es) that implements this interface.
+- You expect that unrelated classes would implement your interface. For example, the interfaces Comparable and Cloneable are implemented by many unrelated classes.
+- You want to specify the behavior of a particular data type, but not concerned about who implements its behavior.
+- You want to take advantage of multiple inheritances.
+
+Abstract class vs Interface
+
+> Type of methods: Interface can have only abstract methods. Abstract class can have abstract and non-abstract methods. From Java 8, it can have default and static methods also.
+> Final Variables: Variables declared in a Java interface are by default final. An abstract class may contain non-final variables.
+> Type of variables: Abstract class can have final, non-final, static and non-static variables. Interface has only static and final variables.
+> Implementation: Abstract class can provide the implementation of interface.	Interface can’t provide the implementation of abstract class.
+> Inheritance vs Abstraction: A Java interface can be implemented using keyword “implements” and abstract class can be extended using keyword “extends”.
+> Multiple implementation: An interface can extend another Java interface only, an abstract class can extend another Java class and implement multiple Java interfaces.
+> Accessibility of Data Members: Members of a Java interface are public by default. A Java abstract class can have class members like private, protected, etc.
+--------------------------------------
+
